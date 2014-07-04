@@ -23,6 +23,7 @@
 #include "radio.h"
 #include "hw_types.h"
 #include "hw_memmap.h"
+#include "sens_itf_mote.h"
 
 //=========================== variables =======================================
 
@@ -72,6 +73,7 @@ void board_init() {
    radiotimer_init();
    uart_init();
    radio_init();
+   sens_itf_mote_init();
 
    leds_debug_on();
 }
