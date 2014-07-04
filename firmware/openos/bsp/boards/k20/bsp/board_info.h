@@ -14,11 +14,8 @@
 #include <stdint.h>
 
 //=========================== defines =========================================
-#define ID 0x45
 
-#define port_INLINE                         inline
-#define START_PACK(x) _Pragma(#x)
-#define END_PACK(x)   _Pragma(#x)
+#define ID 0x45
 
 #define PORT_TICS_PER_MS                    281
 #define PORT_TIMER_WIDTH                    uint16_t

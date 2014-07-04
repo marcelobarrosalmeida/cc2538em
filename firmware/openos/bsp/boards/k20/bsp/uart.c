@@ -7,9 +7,7 @@
 #include "common.h"
 #include "uart.h"
 #include "uart_config.h"
-#include "board_info.h"
-
-
+#include "board.h"
 
 typedef struct {
 	uart_tx_cbt txCb;

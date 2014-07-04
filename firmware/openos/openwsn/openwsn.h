@@ -10,6 +10,7 @@
 
 //general
 #include <stdint.h>               // needed for uin8_t, uint16_t
+#include "toolchain_defs.h"
 #include "board_info.h"
 
 //=========================== define ==========================================
@@ -256,17 +257,16 @@ enum {
 typedef uint16_t  errorparameter_t;
 typedef uint16_t  dagrank_t;
 typedef uint8_t   owerror_t;
-#define bool uint8_t
 
-START_PACK(pack(1));
+BEGIN_PACK
 typedef struct {
    uint8_t  byte4;
    uint16_t bytes2and3;
    uint16_t bytes0and1;
 } asn_t;
-END_PACK(pack());
+END_PACK
 
-START_PACK(pack(1));
+BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
    uint8_t type;
    union {
@@ -277,7 +277,7 @@ typedef struct {                                 // always written big endian, i
       uint8_t prefix[8];
    };
 } open_addr_t;
-END_PACK(pack());
+END_PACK
 
 typedef struct {
    //admin

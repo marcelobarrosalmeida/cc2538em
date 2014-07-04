@@ -24,13 +24,13 @@
 void eui64_get(uint8_t* addressToWrite) {
     uint8_t * eui64_flash;
 
-    eui64_flash = BSP_EUI64_ADDRESS_LO_H;
-    while(eui64_flash >= BSP_EUI64_ADDRESS_LO_L) {
+   eui64_flash = (uint8_t*)BSP_EUI64_ADDRESS_LO_H;
+   while(eui64_flash >= (uint8_t*)BSP_EUI64_ADDRESS_LO_L) {
         *addressToWrite++ = *eui64_flash--;
     }
 
-    eui64_flash = BSP_EUI64_ADDRESS_HI_H;
-    while(eui64_flash >= BSP_EUI64_ADDRESS_HI_L) {
+   eui64_flash = (uint8_t*)BSP_EUI64_ADDRESS_HI_H;
+   while(eui64_flash >= (uint8_t*)BSP_EUI64_ADDRESS_HI_L) {
         *addressToWrite++ = *eui64_flash--;
     }
 }

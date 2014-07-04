@@ -83,7 +83,6 @@ void rex_task_cb() {
    uint8_t           i;
    
    uint16_t       x_int       = 0;
-   //uint16_t*      p_x_int     = &x_int;
    uint16_t       sum         = 0;
    uint16_t       avg         = 0;
    uint8_t        N_avg       = 10;
@@ -97,20 +96,20 @@ void rex_task_cb() {
        return;
    }
    
-   
    for (i = 0; i < N_avg; i++) {
-      //ADC_getvoltage(p_x_int);
       sum += x_int;
    }
    avg = sum/N_avg;
    
-   
    // create a CoAP RD packet
    pkt = openqueue_getFreePacketBuffer(COMPONENT_REX);
    if (pkt==NULL) {
-      openserial_printError(COMPONENT_REX,ERR_NO_FREE_PACKET_BUFFER,
+      openserial_printError(
+         COMPONENT_REX,
+         ERR_NO_FREE_PACKET_BUFFER,
                             (errorparameter_t)0,
-                            (errorparameter_t)0);
+         (errorparameter_t)0
+      );
       openqueue_freePacketBuffer(pkt);
       return;
    }
@@ -131,25 +130,28 @@ void rex_task_cb() {
    packetfunctions_reserveHeaderSize(pkt,sizeof(rex_path0)-1);
    memcpy(&pkt->payload[0],&rex_path0,sizeof(rex_path0)-1);
    packetfunctions_reserveHeaderSize(pkt,1);
-   pkt->payload[0]                  = (COAP_OPTION_NUM_URIPATH) << 4 |
-      sizeof(rex_path0)-1;
+   pkt->payload[0]                = ((COAP_OPTION_NUM_URIPATH) << 4) | (sizeof(rex_path0)-1);
    numOptions++;
    // content-type option
    packetfunctions_reserveHeaderSize(pkt,2);
-   pkt->payload[0]                  = COAP_OPTION_NUM_CONTENTFORMAT << 4 |
-      1;
+   pkt->payload[0]                = (COAP_OPTION_NUM_CONTENTFORMAT << 4) | 1;
    pkt->payload[1]                  = COAP_MEDTYPE_APPOCTETSTREAM;
    numOptions++;
+   
    // metadata
    pkt->l4_destination_port         = WKP_UDP_COAP;
    pkt->l3_destinationAdd.type = ADDR_128B;
    memcpy(&pkt->l3_destinationAdd.addr_128b[0],&ipAddr_motesEecs,16);
+   
    // send
-   outcome = opencoap_send(pkt,
+   outcome = opencoap_send(
+      pkt,
                            COAP_TYPE_NON,
                            COAP_CODE_REQ_PUT,
                            numOptions,
-                           &rex_vars.desc);
+      &rex_vars.desc
+   );
+   
    // avoid overflowing the queue if fails
    if (outcome==E_FAIL) {
       openqueue_freePacketBuffer(pkt);

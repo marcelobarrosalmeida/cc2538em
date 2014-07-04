@@ -1,5 +1,5 @@
 /**
-\brief cc2538-specific definition of the "radio" bsp module.
+\brief CC2538-specific definition of the "radio" bsp module.
 
 \author Xavier Vilajosana <xvilajosana@eecs.berkeley.edu>, Sept 2013.
 */
@@ -67,11 +67,12 @@ void radio_init() {
    //disable radio interrupts
    disable_radio_interrupts();
 
-   /* This CORR_THR value should be changed to 0x14 before attempting RX. Testing has shown that
-      * too many false frames are received if the reset value is used. Make it more likely to detect
-      * sync by removing the requirement that both symbols in the SFD must have a correlation value
-      * above the correlation threshold, and make sync word detection less likely by raising the
-      * correlation threshold.
+   /*
+   This CORR_THR value should be changed to 0x14 before attempting RX. Testing has shown that
+   too many false frames are received if the reset value is used. Make it more likely to detect
+   sync by removing the requirement that both symbols in the SFD must have a correlation value
+   above the correlation threshold, and make sync word detection less likely by raising the
+   correlation threshold.
       */
    HWREG(RFCORE_XREG_MDMCTRL1) = 0x14;
    /* tuning adjustments for optimal radio performance; details available in datasheet */
@@ -144,6 +145,7 @@ void radio_init() {
    HWREG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM_M; //all errors
    IntEnable(INT_RFCOREERR);
    //radio_on();
+   
    // change state
    radio_vars.state          = RADIOSTATE_RFOFF;
 }
@@ -169,6 +171,7 @@ void radio_setEndFrameCb(radiotimer_capture_cbt cb) {
 void radio_reset() {
 	 /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
 	  while(HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+   
       //flush fifos
 	  CC2538_RF_CSP_ISFLUSHRX();
 	  CC2538_RF_CSP_ISFLUSHTX();
@@ -227,6 +230,7 @@ void radio_rfOn() {
 }
 
 void radio_rfOff() {
+   
    // change state
    radio_vars.state = RADIOSTATE_TURNING_OFF;
    radio_off();
@@ -244,19 +248,20 @@ void radio_rfOff() {
 
 void radio_loadPacket(uint8_t* packet, uint8_t len) {
 	uint8_t i=0;
+   
    // change state
    radio_vars.state = RADIOSTATE_LOADING_PACKET;
    
    // load packet in TXFIFO
    /*
-      * When we transmit in very quick bursts, make sure previous transmission
-      * is not still in progress before re-writing to the TX FIFO
+   When we transmit in very quick bursts, make sure previous transmission
+   is not still in progress before re-writing to the TX FIFO
       */
      while(HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
      CC2538_RF_CSP_ISFLUSHTX();
 
-     /* Send the phy length byte first --  */
+   /* Send the phy length byte first */
      HWREG(RFCORE_SFR_RFDATA) = len; //crc len is included
 
      for(i = 0; i < len; i++) {
@@ -268,6 +273,7 @@ void radio_loadPacket(uint8_t* packet, uint8_t len) {
 }
 
 void radio_txEnable() {
+   
    // change state
    radio_vars.state = RADIOSTATE_ENABLING_TX;
    
@@ -284,6 +290,7 @@ void radio_txEnable() {
 
 void radio_txNow() {
    PORT_TIMER_WIDTH count;
+   
    // change state
    radio_vars.state = RADIOSTATE_TRANSMITTING;
 
@@ -309,6 +316,7 @@ void radio_rxEnable() {
 
    // change state
    radio_vars.state = RADIOSTATE_ENABLING_RX;
+   
    //enable radio interrupts
 
    // do nothing as we do not want to receive anything yet.
@@ -339,7 +347,7 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t  maxBufLen,
                              int8_t* pRssi,
                             uint8_t* pLqi,
-                            uint8_t* pCrc) {
+                               bool* pCrc) {
    uint8_t crc_corr,i;
 
    uint8_t len=0;
@@ -384,6 +392,7 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
     crc_corr = HWREG(RFCORE_SFR_RFDATA);
     *pCrc = crc_corr & CRC_BIT_MASK;
     *pLenRead = len;
+   
     //flush it
     CC2538_RF_CSP_ISFLUSHRX();
 }

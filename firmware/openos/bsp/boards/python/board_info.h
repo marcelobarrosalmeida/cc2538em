@@ -11,15 +11,6 @@
 #include "string.h"
 
 //=========================== defines =========================================
-#ifdef _MSC_VER
-    #define port_INLINE   __inline
-    #define START_PACK(x) __pragma(pack(push,1))
-    #define END_PACK(x)   __pragma(pack(pop))
-#else /* GCC compiler */
-    #define port_INLINE   inline
-    #define START_PACK(x) _Pragma(#x)
-    #define END_PACK(x)   _Pragma(#x)
-#endif
 
 #define INTERRUPT_DECLARATION()             ;
 #define ENABLE_INTERRUPTS()                 ;

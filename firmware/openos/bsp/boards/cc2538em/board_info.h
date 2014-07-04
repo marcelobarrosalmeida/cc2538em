@@ -16,10 +16,6 @@ to return the board's description.
 #include "interrupt.h"
 //=========================== defines =========================================
 
-#define port_INLINE                         inline
-#define START_PACK(x) _Pragma(#x)
-#define END_PACK(x)   _Pragma(#x)
-
 //===== interrupt state
 
 #define INTERRUPT_DECLARATION()

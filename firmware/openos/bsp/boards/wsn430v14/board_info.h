@@ -16,12 +16,6 @@ to this board.
 
 //=========================== define ==========================================
 
-// (pre-)processor scpecific commands
-
-#define port_INLINE                         inline
-#define START_PACK(x) _Pragma(#x)
-#define END_PACK(x)   _Pragma(#x)
-
 //===== interrupt state
 
 #if defined(__GNUC__) && (__GNUC__==4)  && (__GNUC_MINOR__<=5) && defined(__MSP430__)

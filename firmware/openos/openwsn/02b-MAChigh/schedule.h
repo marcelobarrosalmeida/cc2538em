@@ -74,7 +74,7 @@ typedef enum {
 } cellType_t;
 
 
-START_PACK(pack(1));
+BEGIN_PACK
 typedef struct {
    slotOffset_t    slotOffset;
    cellType_t      type;
@@ -87,19 +87,19 @@ typedef struct {
    asn_t           lastUsedAsn;
    void*           next;
 } scheduleEntry_t;
-END_PACK(pack());
+END_PACK
 
 //used to debug through ipv6 pkt. 
 
-START_PACK(pack(1));
+BEGIN_PACK
 typedef struct {
    uint8_t last_addr_byte;//last byte of the address; poipoi could be [0]; endianness
    uint8_t slotOffset;
    channelOffset_t channelOffset;
 }netDebugScheduleEntry_t;
-END_PACK(pack());
+END_PACK
 
-START_PACK(pack(1));
+BEGIN_PACK
 typedef struct {
    uint8_t         row;
    slotOffset_t    slotOffset;
@@ -112,9 +112,10 @@ typedef struct {
    uint8_t         numTxACK;
    asn_t           lastUsedAsn;
 } debugScheduleEntry_t;
-END_PACK(pack());
+END_PACK
 
-START_PACK(pack(1)); //elements for slot info 
+// elements for slot info
+BEGIN_PACK
 typedef struct {
   uint8_t address[LENGTH_ADDR64b];// 
   cellType_t link_type;// rx,tx etc...
@@ -122,7 +123,7 @@ typedef struct {
   slotOffset_t slotOffset;
   channelOffset_t channelOffset;
 }slotinfo_element_t;
-END_PACK(pack());
+END_PACK
 //=========================== variables =======================================
 
 typedef struct {

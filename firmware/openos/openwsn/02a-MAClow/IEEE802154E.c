@@ -1119,7 +1119,6 @@ port_INLINE void activity_tie6() {
 
 port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
    ieee802154_header_iht ieee802514_header;
-   volatile PORT_SIGNED_INT_WIDTH  timeCorrection;
    uint16_t lenIE;
    
    // change state

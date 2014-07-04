@@ -18,10 +18,6 @@ to return the board's description.
 
 //=========================== defines =========================================
 
-#define port_INLINE                         inline
-#define START_PACK(x) _Pragma(#x)
-#define END_PACK(x)   _Pragma(#x)
-
 //===== timer
 
 #define PORT_TIMER_WIDTH                    uint16_t
