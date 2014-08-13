@@ -7,29 +7,11 @@
 extern "C" {
 #endif
 
-#define SENS_ITF_LATEST_VERSION     0
+#include "opensensors.h"
+
 #define SENS_ITF_MAX_FRAME_SIZE   128
 #define SENS_ITF_DSP_MSG_MAX_SIZE  24
-#define SENS_ITF_MAX_POINTS        32
 #define SENS_ITF_SERVER_ADDR_SIZE  16
-#define SENS_ITF_MODEL_NAME_SIZE    8
-#define SENS_ITF_MANUF_NAME_SIZE    8
-#define SENS_ITF_POINT_NAME_SIZE    8
-
-/** Sensor interface standard datatypes */
-enum sens_itf_datatypes_e
-{
-	SENS_ITF_DT_U8     = 0x00, /**< 8 bits unsigned */
-	SENS_ITF_DT_S8     = 0x01, /**< 8 bits signed */
-	SENS_ITF_DT_U16    = 0x02, /**< 16 bits unsigned */
-	SENS_ITF_DT_S16    = 0x03, /**< 16 bits signed */
-	SENS_ITF_DT_U32    = 0x04, /**< 32 bits unsigned */
-	SENS_ITF_DT_S32    = 0x05, /**< 32 bits signed */
-	SENS_ITF_DT_U64    = 0x06, /**< 64 bits unsigned */
-	SENS_ITF_DT_S64    = 0x07, /**< 64 bits signed */
-	SENS_ITF_DT_FLOAT  = 0x08, /**< IEEE 754 single precision */
-	SENS_ITF_DT_DOUBLE = 0x09, /**< IEEE 754 double precision */
-};
 
 /** Sensor interface register map */
 enum sens_itf_register_map_e 
@@ -207,21 +189,6 @@ enum sens_itf_ans_status_e
     SENS_ITF_ANS_REGISTER_NOT_IMPLEMENTED = 5,
 };
 
-enum sens_itf_access_rights_e
-{
-	SENS_ITF_ACCESS_READ_ONLY = 0x01,
-	SENS_ITF_ACCESS_WRITE_ONLY = 0x02,
-	SENS_ITF_ACCESS_READ_WRITE = 0x03,
-};
-
-enum sens_itf_sensor_capabilities_e
-{
-	SENS_ITF_CAPABILITIES_BATTERY = 0x01,
-	SENS_ITF_CAPABILITIES_DISPLAY = 0x02,
-	SENS_ITF_CAPABILITIES_WPAN_STATUS = 0x04,
-	SENS_ITF_CAPABILITIES_BATTERY_STATUS = 0x08,
-};
-
 enum sens_itf_bat_status_e
 {
 	SENS_ITF_BAT_STATUS_CHARGED = 0x00,
@@ -235,20 +202,6 @@ enum sens_itf_wpan_status_e
 	SENS_ITF_WPAN_STATUS_CONNECTED = 0x00,
 	SENS_ITF_WPAN_STATUS_DISCONNECTED = 0x01,
 	SENS_ITF_WPAN_STATUS_CONNECTING = 0x02,
-};
-
-union sens_itf_point_data_u
-{
-	uint8_t  u8;
-	int8_t   s8;
-	uint16_t u16;
-	int16_t  s16;
-	uint32_t u32;
-	int32_t  s32;
-	uint64_t u64;
-	int64_t  s64;
-	float    fp32;
-	double   fp64;
 };
 
 typedef struct sens_itf_cmd_bat_status_s
@@ -297,43 +250,18 @@ typedef struct sens_itf_cmd_itf_version_s
 	uint8_t version;
 } sens_itf_cmd_itf_version_t;
 
-typedef struct sens_itf_cmd_brd_id_s
-{
-	uint8_t model[SENS_ITF_MODEL_NAME_SIZE];
-	uint8_t manufactor[SENS_ITF_MANUF_NAME_SIZE];
-	uint32_t sensor_id;
-	uint8_t hardware_revision;
-	uint8_t num_of_points;
-	uint8_t cabalities;
-} sens_itf_cmd_brd_id_t;
-
 typedef struct sens_itf_cmd_brd_status_s
 {
 	uint8_t status;
 } sens_itf_cmd_brd_status_t;
 
-typedef struct sens_itf_cmd_point_desc_s
-{
-	uint8_t name[SENS_ITF_POINT_NAME_SIZE];
-	uint8_t type;
-	uint8_t unit;
-	uint8_t access_rights;
-	uint32_t sampling_time_x250ms;
-} sens_itf_cmd_point_desc_t;
-
-typedef struct sens_itf_cmd_point_s
-{
-	union sens_itf_point_data_u value;
-    uint8_t type;
-} sens_itf_cmd_point_t;
-
 typedef struct sens_itf_point_ctrl_s
 {
 	uint8_t num_of_points;
 	struct {
-		sens_itf_cmd_point_desc_t desc;
-		sens_itf_cmd_point_t value;
-	} points[SENS_ITF_MAX_POINTS];
+		osens_point_desc_t desc;
+		osens_point_t value;
+	} points[OSENS_MAX_POINTS];
 } sens_itf_point_ctrl_t;
 
 union sens_itf_cmds_u
@@ -347,10 +275,10 @@ union sens_itf_cmds_u
 	sens_itf_cmd_write_display_t write_display_cmd;
 	sens_itf_cmd_svr_addr_t svr_addr_cmd;
 	sens_itf_cmd_itf_version_t itf_version_cmd;
-	sens_itf_cmd_brd_id_t brd_id_cmd;
+	osens_brd_id_t brd_id_cmd;
 	sens_itf_cmd_brd_status_t brd_status_cmd;
-	sens_itf_cmd_point_desc_t point_desc_cmd;
-	sens_itf_cmd_point_t point_value_cmd;
+	osens_point_desc_t point_desc_cmd;
+	osens_point_t point_value_cmd;
 };
 
 typedef struct sens_itf_cmd_req_hdr_s
@@ -381,20 +309,20 @@ typedef struct sens_itf_cmd_res_s
 } sens_itf_cmd_res_t;
 
 
-//extern uint8_t sens_itf_send_cmd(sens_itf_cmd_req_t * cmd, sens_itf_cmd_res_t * ans);
-//extern int sens_itf_send_cmd_async(const sens_itf_cmd_req_t * const cmd, const sens_itf_cmd_res_t * ans);
+//uint8_t sens_itf_send_cmd(sens_itf_cmd_req_t * cmd, sens_itf_cmd_res_t * ans);
+//int sens_itf_send_cmd_async(const sens_itf_cmd_req_t * const cmd, const sens_itf_cmd_res_t * ans);
 
-//extern uint8_t sens_itf_mote_init(void);
-//extern uint8_t sens_itf_sensor_init(void);
-//extern void sens_itf_mote_main(void);
+//uint8_t sens_itf_mote_init(void);
+//uint8_t sens_itf_sensor_init(void);
+//void sens_itf_mote_main(void);
 
-extern uint8_t sens_itf_unpack_point_value(sens_itf_cmd_point_t *point, uint8_t *buf);
-extern uint8_t sens_itf_pack_point_value(const sens_itf_cmd_point_t *point, uint8_t *buf);
+uint8_t sens_itf_unpack_point_value(osens_point_t *point, uint8_t *buf);
+uint8_t sens_itf_pack_point_value(const osens_point_t *point, uint8_t *buf);
 
-extern uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame, uint8_t frame_size);
-extern uint8_t sens_itf_unpack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame, uint8_t frame_size);
-extern uint8_t sens_itf_pack_cmd_res  (sens_itf_cmd_res_t *cmd, uint8_t *frame);
-extern uint8_t sens_itf_pack_cmd_req  (sens_itf_cmd_req_t *cmd, uint8_t *frame);
+uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame, uint8_t frame_size);
+uint8_t sens_itf_unpack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame, uint8_t frame_size);
+uint8_t sens_itf_pack_cmd_res  (sens_itf_cmd_res_t *cmd, uint8_t *frame);
+uint8_t sens_itf_pack_cmd_req  (sens_itf_cmd_req_t *cmd, uint8_t *frame);
 
 #ifdef __cplusplus
 }

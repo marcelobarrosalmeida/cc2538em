@@ -21,6 +21,9 @@
 #include "packetfunctions.h"
 #include "openqueue.h"
 
+// minimum tick time is 1
+#define MS2TICK(ms) (ms) > SENS_ITF_SM_TICK_MS ? (ms) / SENS_ITF_SM_TICK_MS : 1
+
 enum {
     SENS_ITF_STATE_INIT = 0,
     SENS_ITF_STATE_SEND_ITF_VER = 1,
@@ -76,12 +79,12 @@ typedef struct sens_itf_acq_schedule_s
 		uint8_t index;
 		uint32_t sampling_time_x250ms;
         uint32_t counter;
-	} points[SENS_ITF_MAX_POINTS];
+	} points[OSENS_MAX_POINTS];
 
 	struct
 	{
 		uint8_t num_of_points;
-		uint8_t index[SENS_ITF_MAX_POINTS];
+		uint8_t index[OSENS_MAX_POINTS];
 	} scan;
 } sens_itf_acq_schedule_t;
 
@@ -118,7 +121,7 @@ sens_itf_cmd_res_t ans;
 
 sens_itf_mote_sm_state_t sm_state;
 sens_itf_point_ctrl_t sensor_points;
-sens_itf_cmd_brd_id_t board_info;
+osens_brd_id_t board_info;
 sens_itf_acq_schedule_t acquisition_schedule;
 
 
@@ -319,7 +322,7 @@ static uint8_t sens_itf_mote_sm_func_pt_val_ans(sens_itf_mote_sm_state_t *st)
         return SENS_ITF_STATE_EXEC_OK;
 
     // ok, save and go to the next
-    memcpy(&sensor_points.points[point].value, &ans.payload.point_value_cmd, sizeof(sens_itf_cmd_point_t));
+    memcpy(&sensor_points.points[point].value, &ans.payload.point_value_cmd, sizeof(osens_point_t));
 
     st->retries = 0;
     st->point_index++;
@@ -397,7 +400,7 @@ static uint8_t sens_itf_mote_sm_func_build_sch(sens_itf_mote_sm_state_t *st)
 
     for (n = 0, m = 0; n < board_info.num_of_points; n++)
     {
-        if ((sensor_points.points[n].desc.access_rights & SENS_ITF_ACCESS_READ_ONLY) &&
+        if ((sensor_points.points[n].desc.access_rights & OSENS_ACCESS_READ_ONLY) &&
             (sensor_points.points[n].desc.sampling_time_x250ms > 0))
         {
             acquisition_schedule.points[m].index = n;
@@ -422,7 +425,7 @@ static uint8_t sens_itf_mote_sm_func_pt_desc_ans(sens_itf_mote_sm_state_t *st)
     if (size != ans_size || (ans.hdr.addr != SENS_ITF_REGMAP_POINT_DESC_1 + st->point_index))
         return SENS_ITF_STATE_EXEC_ERROR;
 
-    memcpy(&sensor_points.points[st->point_index].desc,&ans.payload.point_desc_cmd,sizeof(sens_itf_cmd_point_desc_t));
+    memcpy(&sensor_points.points[st->point_index].desc,&ans.payload.point_desc_cmd,sizeof(osens_point_desc_t));
 
     st->point_index++;
     sensor_points.num_of_points = st->point_index;
@@ -456,9 +459,9 @@ static uint8_t sens_itf_mote_sm_func_proc_brd_id_ans(sens_itf_mote_sm_state_t *s
     if (size != ans_size)
     	return SENS_ITF_STATE_EXEC_ERROR;
 
-    memcpy(&board_info, &ans.payload.brd_id_cmd, sizeof(sens_itf_cmd_brd_id_t));
+    memcpy(&board_info, &ans.payload.brd_id_cmd, sizeof(osens_brd_id_t));
 
-    if ((board_info.num_of_points == 0) || (board_info.num_of_points > SENS_ITF_MAX_POINTS))
+    if ((board_info.num_of_points == 0) || (board_info.num_of_points > OSENS_MAX_POINTS))
     	return SENS_ITF_STATE_EXEC_ERROR;
 
     sensor_points.num_of_points = 0;
@@ -486,7 +489,7 @@ static uint8_t sens_itf_mote_sm_func_proc_itf_ver_ans(sens_itf_mote_sm_state_t *
 	if (size != ans_size)
     	return SENS_ITF_STATE_EXEC_ERROR;
 
-    if ((SENS_ITF_ANS_OK != ans.hdr.status) || (SENS_ITF_LATEST_VERSION != ans.payload.itf_version_cmd.version))
+    if ((SENS_ITF_ANS_OK != ans.hdr.status) || (OSENS_LATEST_VERSION != ans.payload.itf_version_cmd.version))
     	return SENS_ITF_STATE_EXEC_ERROR;
 
 

@@ -26,9 +26,6 @@ extern "C" {
 #define BSP_UART_INT_BM         0xF0            //!< Interrupts handled by bsp uart
 
 
-// minimum tick time is 1
-#define MS2TICK(ms) (ms) > SENS_ITF_SM_TICK_MS ? (ms) / SENS_ITF_SM_TICK_MS : 1
-
 #if (USE_SPI_INTERFACE == 0)
 //
 // This macro gets the byte size of the specified BSP UART ring buffer.

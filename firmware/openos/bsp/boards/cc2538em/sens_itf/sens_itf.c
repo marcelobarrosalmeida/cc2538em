@@ -6,49 +6,49 @@
 
 #define SENS_ITF_DBG_FRAME 1
 
-uint8_t sens_itf_unpack_point_value(sens_itf_cmd_point_t *point, uint8_t *buf)
+uint8_t sens_itf_unpack_point_value(osens_point_t *point, uint8_t *buf)
 {
     uint8_t size = 0;
 
     switch (point->type)
     {
-    case SENS_ITF_DT_U8:
+    case OSENS_DT_U8:
         point->value.u8 = buf_io_get8_fl(buf);
         size = 1;
         break;
-    case SENS_ITF_DT_S8:
+    case OSENS_DT_S8:
         point->value.s8 = buf_io_get8_fl(buf);
         size = 1;
         break;
-    case SENS_ITF_DT_U16:
+    case OSENS_DT_U16:
         point->value.u16 = buf_io_get16_fl(buf);
         size = 2;
         break;
-    case SENS_ITF_DT_S16:
+    case OSENS_DT_S16:
         point->value.s16 = buf_io_get16_fl(buf);
         size = 2;
         break;
-    case SENS_ITF_DT_U32:
+    case OSENS_DT_U32:
         point->value.u32 = buf_io_get32_fl(buf);
         size = 4;
         break;
-    case SENS_ITF_DT_S32:
+    case OSENS_DT_S32:
         point->value.s32 = buf_io_get32_fl(buf);
         size = 4;
         break;
-    case SENS_ITF_DT_U64:
+    case OSENS_DT_U64:
         point->value.u64 = buf_io_get64_fl(buf);
         size = 8;
         break;
-    case SENS_ITF_DT_S64:
+    case OSENS_DT_S64:
         point->value.s64 = buf_io_get64_fl(buf);
         size = 8;
         break;
-    case SENS_ITF_DT_FLOAT:
+    case OSENS_DT_FLOAT:
         point->value.fp32 = buf_io_getf_fl(buf);
         size = 4;
         break;
-    case SENS_ITF_DT_DOUBLE:
+    case OSENS_DT_DOUBLE:
         point->value.fp64 = buf_io_getd_fl(buf);
         size = 8;
         break;
@@ -59,49 +59,49 @@ uint8_t sens_itf_unpack_point_value(sens_itf_cmd_point_t *point, uint8_t *buf)
     return size;
 }
 
-uint8_t sens_itf_pack_point_value(const sens_itf_cmd_point_t *point, uint8_t *buf)
+uint8_t sens_itf_pack_point_value(const osens_point_t *point, uint8_t *buf)
 {
     uint8_t size = 0;
 
     switch (point->type)
     {
-    case SENS_ITF_DT_U8:
+    case OSENS_DT_U8:
         buf_io_put8_tl(point->value.u8, buf);
         size = 1;
         break;
-    case SENS_ITF_DT_S8:
+    case OSENS_DT_S8:
         buf_io_put8_tl(point->value.s8, buf);
         size = 1;
         break;
-    case SENS_ITF_DT_U16:
+    case OSENS_DT_U16:
         buf_io_put16_tl(point->value.u16, buf);
         size = 2;
         break;
-    case SENS_ITF_DT_S16:
+    case OSENS_DT_S16:
         buf_io_put16_tl(point->value.s16, buf);
         size = 2;
         break;
-    case SENS_ITF_DT_U32:
+    case OSENS_DT_U32:
         buf_io_put32_tl(point->value.u32, buf);
         size = 4;
         break;
-    case SENS_ITF_DT_S32:
+    case OSENS_DT_S32:
         buf_io_put32_tl(point->value.s32, buf);
         size = 4;
         break;
-    case SENS_ITF_DT_U64:
+    case OSENS_DT_U64:
         buf_io_put64_tl(point->value.u64, buf);
         size = 8;
         break;
-    case SENS_ITF_DT_S64:
+    case OSENS_DT_S64:
         buf_io_put64_tl(point->value.s64, buf);
         size = 8;
         break;
-    case SENS_ITF_DT_FLOAT:
+    case OSENS_DT_FLOAT:
         buf_io_putf_tl(point->value.fp32, buf);
         size = 4;
         break;
-    case SENS_ITF_DT_DOUBLE:
+    case OSENS_DT_DOUBLE:
         buf_io_putd_tl(point->value.fp64, buf);
         size = 8;
         break;
@@ -195,10 +195,10 @@ uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
             buf_io_put8_tl_ap(cmd->payload.itf_version_cmd.version, buf);
             break;
         case SENS_ITF_REGMAP_BRD_ID:
-            memcpy(buf, cmd->payload.brd_id_cmd.model, SENS_ITF_MODEL_NAME_SIZE);
-            buf += SENS_ITF_MODEL_NAME_SIZE;
-            memcpy(buf, cmd->payload.brd_id_cmd.manufactor, SENS_ITF_MANUF_NAME_SIZE);
-            buf += SENS_ITF_MODEL_NAME_SIZE;
+            memcpy(buf, cmd->payload.brd_id_cmd.model, OSENS_MODEL_NAME_SIZE);
+            buf += OSENS_MODEL_NAME_SIZE;
+            memcpy(buf, cmd->payload.brd_id_cmd.manufactor, OSENS_MANUF_NAME_SIZE);
+            buf += OSENS_MODEL_NAME_SIZE;
             buf_io_put32_tl_ap(cmd->payload.brd_id_cmd.sensor_id, buf);
             buf_io_put8_tl_ap(cmd->payload.brd_id_cmd.hardware_revision, buf);
             buf_io_put8_tl_ap(cmd->payload.brd_id_cmd.num_of_points, buf);
@@ -229,8 +229,8 @@ uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
             (cmd->hdr.addr <= SENS_ITF_REGMAP_POINT_DESC_32))
         {
             //uint8_t point = cmd->hdr.addr - SENS_ITF_REGMAP_POINT_DESC_1;
-            memcpy(buf, cmd->payload.point_desc_cmd.name, SENS_ITF_POINT_NAME_SIZE);
-            buf += SENS_ITF_POINT_NAME_SIZE;
+            memcpy(buf, cmd->payload.point_desc_cmd.name, OSENS_POINT_NAME_SIZE);
+            buf += OSENS_POINT_NAME_SIZE;
             buf_io_put8_tl_ap(cmd->payload.point_desc_cmd.type, buf);
             buf_io_put8_tl_ap(cmd->payload.point_desc_cmd.unit, buf);
             buf_io_put8_tl_ap(cmd->payload.point_desc_cmd.access_rights, buf);
@@ -301,10 +301,10 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
         cmd->payload.itf_version_cmd.version = buf_io_get8_fl_ap(buf);
         break;
     case SENS_ITF_REGMAP_BRD_ID:
-        memcpy(cmd->payload.brd_id_cmd.model, buf, SENS_ITF_MODEL_NAME_SIZE);
-        buf += SENS_ITF_MODEL_NAME_SIZE;
-        memcpy(cmd->payload.brd_id_cmd.manufactor, buf, SENS_ITF_MANUF_NAME_SIZE);
-        buf += SENS_ITF_MODEL_NAME_SIZE;
+        memcpy(cmd->payload.brd_id_cmd.model, buf, OSENS_MODEL_NAME_SIZE);
+        buf += OSENS_MODEL_NAME_SIZE;
+        memcpy(cmd->payload.brd_id_cmd.manufactor, buf, OSENS_MANUF_NAME_SIZE);
+        buf += OSENS_MODEL_NAME_SIZE;
         cmd->payload.brd_id_cmd.sensor_id = buf_io_get32_fl_ap(buf);
         cmd->payload.brd_id_cmd.hardware_revision = buf_io_get8_fl_ap(buf);
         cmd->payload.brd_id_cmd.num_of_points = buf_io_get8_fl_ap(buf);
@@ -334,8 +334,8 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
     if ((cmd->hdr.addr >= SENS_ITF_REGMAP_POINT_DESC_1) && 
         (cmd->hdr.addr <= SENS_ITF_REGMAP_POINT_DESC_32))
     {
-        memcpy(cmd->payload.point_desc_cmd.name, buf, SENS_ITF_POINT_NAME_SIZE);
-        buf += SENS_ITF_POINT_NAME_SIZE;
+        memcpy(cmd->payload.point_desc_cmd.name, buf, OSENS_POINT_NAME_SIZE);
+        buf += OSENS_POINT_NAME_SIZE;
         cmd->payload.point_desc_cmd.type = buf_io_get8_fl_ap(buf);
         cmd->payload.point_desc_cmd.unit = buf_io_get8_fl_ap(buf);
         cmd->payload.point_desc_cmd.access_rights = buf_io_get8_fl_ap(buf);
