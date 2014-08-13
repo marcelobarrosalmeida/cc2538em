@@ -21,6 +21,7 @@ bsp_dir  = os.path.join('#','firmware','openos','bsp','boards','iot-lab_M3')
 source   = \
     Glob('*.c') + \
     Glob('source/*.c') + \
+    Glob('sens_itf/*.c') + \
     [rf231]
 
 libbsp = localEnv.Library(

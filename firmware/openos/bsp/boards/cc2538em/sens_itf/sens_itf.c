@@ -1,3 +1,4 @@
+#include "openwsn.h"
 #include <string.h>
 #include <stdint.h>
 #include "sens_itf.h"

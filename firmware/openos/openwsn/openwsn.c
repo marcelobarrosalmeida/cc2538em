@@ -35,6 +35,7 @@
 //===== applications
 //+++++ TCP
 //- debug
+#include "sensors.h"
 #include "tcpecho.h"
 #include "tcpinject.h"
 #include "tcpprint.h"
@@ -139,6 +140,7 @@ void openwsn_init() {
    rleds__init();
    rwellknown_init();
    r6t_init();
+   sensors_init();
    //rreg_init();
    //rex_init();
    //rrube_init();

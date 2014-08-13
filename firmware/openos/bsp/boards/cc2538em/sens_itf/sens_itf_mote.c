@@ -211,14 +211,6 @@ static uint8_t sens_itf_mote_sm_func_run_sch(sens_itf_mote_sm_state_t *st)
     	return SENS_ITF_STATE_EXEC_WAIT_OK;
 }
 
-/*
-
-{
-    sens_itf_mote_read_point(acquisition_schedule.points[n].index);
-    acquisition_schedule.points[n].counter = acquisition_schedule.points[n].sampling_time_x250ms;
-}
-*/
-
 static uint8_t sens_itf_mote_sm_func_build_sch(sens_itf_mote_sm_state_t *st)
 {
 	uint8_t n, m;
@@ -420,7 +412,7 @@ uint8_t sens_itf_mote_init(void)
 	memset(&sm_state, 0, sizeof(sens_itf_mote_sm_state_t));
 	sm_state.state = SENS_ITF_STATE_INIT;
 
-    opentimers_start(SENS_ITF_SM_TICK_MS, TIMER_PERIODIC, TIME_MS, (opentimers_cbt) sens_itf_mote_tick);
+    //opentimers_start(SENS_ITF_SM_TICK_MS, TIMER_PERIODIC, TIME_MS, (opentimers_cbt) sens_itf_mote_tick);
 
     return 0;
 }
