@@ -408,7 +408,7 @@ void radio_getReceivedFrame(OpenMote* self,
                              uint8_t  maxBufLen,
                               int8_t* pRssi,
                              uint8_t* pLqi,
-                                bool* pCrc) {
+                             uint8_t* pCrc) {
    PyObject*  result;
    PyObject*  item;
    PyObject*  subitem;

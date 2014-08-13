@@ -34,9 +34,11 @@ void scheduler_init() {
 void scheduler_start() {
    taskList_item_t* pThisTask;
    while (1) {
-      while(scheduler_vars.task_list!=NULL) {
+       while(scheduler_vars.task_list!=NULL) {
          // there is still at least one task in the linked-list of tasks
          
+    	 //leds_radio_toggle(); RFF 050714
+
          // the task to execute is the one at the head of the queue
          pThisTask                = scheduler_vars.task_list;
          
@@ -51,6 +53,7 @@ void scheduler_start() {
          pThisTask->prio          = TASKPRIO_NONE;
          pThisTask->next          = NULL;
          scheduler_dbg.numTasksCur--;
+
       }
       debugpins_task_clr();
       board_sleep();

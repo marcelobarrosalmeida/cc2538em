@@ -20,10 +20,13 @@
 #include "radiotimer.h"
 #include "debugpins.h"
 #include "uart.h"
+#include "ssi.h"
 #include "radio.h"
 #include "hw_types.h"
 #include "hw_memmap.h"
-#include "sens_itf_mote.h"
+#include "hw_ints.h"
+#include  "uarthal.h"
+
 
 //=========================== variables =======================================
 
@@ -32,6 +35,9 @@
 #define BSP_RADIO_INT               ( GPIO_PIN_5 )
 #define BSP_RADIO_EXT               ( GPIO_PIN_4 )
 #define BSP_USER_BUTTON             ( GPIO_PIN_3 )
+
+#define BSP_SPI_CLK_SPD             8000000UL
+
 //=========================== prototypes ======================================
 
 void antenna_init(void);
@@ -49,6 +55,7 @@ static void SysCtrlSleepSetting(void);
 static void SysCtrlRunSetting(void);
 static void SysCtrlWakeupSetting(void);
 
+void ssi_isr_private(void);
 //=========================== main ============================================
 
 extern int mote_main(void);
@@ -71,11 +78,14 @@ void board_init() {
    button_init();
    bsp_timer_init();
    radiotimer_init();
+#if ENABLE_UART0_DAG
    uart_init();
+#else
+   uart1_init();    //sens_itf
+#endif
    radio_init();
-   sens_itf_mote_init();
 
-   leds_debug_on();
+  // leds_debug_on();
 }
 
 /**
@@ -97,7 +107,7 @@ void button_init(){
 void GPIO_C_Isr_Handler(){
 
 	GPIOPinIntClear(GPIO_C_BASE, BSP_USER_BUTTON);
-	leds_debug_toggle();//toggle led.
+	//leds_debug_toggle();//toggle led.
 }
 
 /**
@@ -251,7 +261,7 @@ static void SysCtrlSleepSetting(void)
   SysCtrlPeripheralSleepDisable(SYS_CTRL_PERIPH_SSI1);
 
   /* Disable UART 0, 1 during sleep */
-  SysCtrlPeripheralSleepDisable(SYS_CTRL_PERIPH_UART1);
+  //SysCtrlPeripheralSleepDisable(SYS_CTRL_PERIPH_UART1);    //RFF
 
   /* Disable I2C, PKA, AES during sleep */
   SysCtrlPeripheralSleepDisable(SYS_CTRL_PERIPH_I2C);
@@ -260,6 +270,7 @@ static void SysCtrlSleepSetting(void)
 
   /* Enable UART and RFC during sleep */
   SysCtrlPeripheralSleepEnable(SYS_CTRL_PERIPH_UART0);
+  SysCtrlPeripheralSleepEnable(SYS_CTRL_PERIPH_UART1);    //RFF
   SysCtrlPeripheralSleepEnable(SYS_CTRL_PERIPH_RFC);
 }
 
@@ -277,7 +288,7 @@ void SysCtrlRunSetting(void)
   SysCtrlPeripheralDisable(SYS_CTRL_PERIPH_SSI1);
 
   /* Disable UART1 when running */
-  SysCtrlPeripheralDisable(SYS_CTRL_PERIPH_UART1);
+  //SysCtrlPeripheralDisable(SYS_CTRL_PERIPH_UART1);    //RFF
 
   /* Disable I2C, AES and PKA when running */
   SysCtrlPeripheralDisable(SYS_CTRL_PERIPH_I2C);
@@ -286,7 +297,11 @@ void SysCtrlRunSetting(void)
 
   /* Enable UART0 and RFC when running */
   SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_UART0);
+  SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_UART1);
   SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_RFC);
+
+  /* The SSI0 peripheral must be enabled for use. */
+  SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_SSI0);
 }
 
 
@@ -295,3 +310,7 @@ void SysCtrlWakeupSetting(void)
   /* SM Timer can wake up the processor */
   GPIOIntWakeupEnable(GPIO_IWE_SM_TIMER);
 }
+
+
+
+

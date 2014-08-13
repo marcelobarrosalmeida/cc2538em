@@ -219,7 +219,7 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t  maxBufLen,
                              int8_t* pRssi,
                             uint8_t* pLqi,
-                               bool* pCrc) {
+                            uint8_t* pCrc) {
    uint8_t temp_reg_value;
    
    //===== crc

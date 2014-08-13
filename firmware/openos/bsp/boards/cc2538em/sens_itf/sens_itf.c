@@ -1,4 +1,3 @@
-#include "openwsn.h"
 #include <string.h>
 #include <stdint.h>
 #include "sens_itf.h"
@@ -277,6 +276,7 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
     cmd->hdr.addr = buf_io_get8_fl_ap(buf);
     cmd->hdr.status = buf_io_get8_fl_ap(buf);
 
+
     frame_crc = buf_io_get16_fl(&frame[cmd->hdr.size]);
     crc = crc16_calc(frame, cmd->hdr.size);
     cmd->crc = frame_crc;
@@ -293,6 +293,7 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
         //OS_UTIL_LOG(SENS_ITF_DBG_FRAME, ("Response error %d", cmd->hdr.status));
         return 0;
     }
+
 
     switch (cmd->hdr.addr)
     {

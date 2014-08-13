@@ -1,14 +1,25 @@
+#include "board.h"
+#include "stdio.h"
 #include <string.h>
+#include "hw_ioc.h"             // Access to IOC register defines
+#include "hw_ssi.h"             // Access to SSI register defines
+#include "hw_sys_ctrl.h"        // Clocking control
+#include "hw_memmap.h"
+#include "ioc.h"                // Access to driverlib ioc fns
+#include "gpio.h"               // Access to driverlib gpio fns
 #include "openwsn.h"
 #include "sens_itf.h"
 #include "opentimers.h"
 #include "scheduler.h"
-
-#define SENS_ITF_DBG_FRAME  0
-#define SENS_ITF_OUTPUT     1
-#define SENS_ITF_SM_TICK_MS 250
-// minimum tick time is 1
-#define MS2TICK(ms) (ms) > SENS_ITF_SM_TICK_MS ? (ms) / SENS_ITF_SM_TICK_MS : 1
+#include "board.h"
+#include "sys_ctrl.h"
+#include "sens_itf_mote.h"
+#include "opencoap.h"
+#include "uarthal.h"
+#include "leds.h"
+#include "uart.h"
+#include "packetfunctions.h"
+#include "openqueue.h"
 
 enum {
     SENS_ITF_STATE_INIT = 0,
@@ -66,6 +77,7 @@ typedef struct sens_itf_acq_schedule_s
 		uint32_t sampling_time_x250ms;
         uint32_t counter;
 	} points[SENS_ITF_MAX_POINTS];
+
 	struct
 	{
 		uint8_t num_of_points;
@@ -74,50 +86,204 @@ typedef struct sens_itf_acq_schedule_s
 } sens_itf_acq_schedule_t;
 
 
-static sens_itf_mote_sm_state_t sm_state;
-static sens_itf_point_ctrl_t sensor_points;
-static sens_itf_cmd_brd_id_t board_info;
-static const uint8_t datatype_sizes[] = { 1, 1, 2, 2, 4, 4, 8, 8, 4, 8 }; // check sens_itf_datatypes_e order
-static sens_itf_acq_schedule_t acquisition_schedule;
-static uint8_t frame[SENS_ITF_MAX_FRAME_SIZE];
-static sens_itf_cmd_req_t cmd;
-static sens_itf_cmd_res_t ans;
 
-#if 0
+static uint8_t sens_itf_mote_sm_func_build_sch(sens_itf_mote_sm_state_t *st);
+static uint8_t sens_itf_mote_sm_func_pt_desc_ans(sens_itf_mote_sm_state_t *st);
+static uint8_t sens_itf_mote_sm_func_req_pt_desc(sens_itf_mote_sm_state_t *st);
+static uint8_t sens_itf_mote_sm_func_run_sch(sens_itf_mote_sm_state_t *st);
+
+//=========================== variables =======================================
+
+typedef struct {
+   coap_resource_desc_t desc;
+   opentimer_id_t  timerId;
+} sensor_vars_t;
+
+const uint8_t sensor_path0[]        = "h";
+
+const sens_itf_mote_sm_table_t sens_itf_mote_sm_table[];
+
+const uint8_t datatype_sizes[] = { 1, 1, 2, 2, 4, 4, 8, 8, 4, 8 }; // check sens_itf_datatypes_e order
+
+sensor_vars_t sensor_vars;
+
+uint8_t num_rx_bytes;
+uint8_t tx_data_len;
+uint32_t flagErrorOccurred;
+
+uint8_t frame[SENS_ITF_MAX_FRAME_SIZE];
+
+sens_itf_cmd_req_t cmd;
+sens_itf_cmd_res_t ans;
+
+sens_itf_mote_sm_state_t sm_state;
+sens_itf_point_ctrl_t sensor_points;
+sens_itf_cmd_brd_id_t board_info;
+sens_itf_acq_schedule_t acquisition_schedule;
+
+
+//=========================== prototypes =======================================
+//=========================== public ==========================================
+uint8_t sensor_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_header, coap_option_iht* coap_options);
+void sensor_timer(void);
+static void sens_itf_mote_tick(void);
+static void buBufFlush(void);
+void bspLedToggle(uint8_t ui8Leds);
+void sensor_sendDone(OpenQueueEntry_t* msg, owerror_t error);
+
+uint8_t sens_itf_mote_init(void) {
+
+#if (ENABLE_UART0_DAG == 0)
+	memset(&sm_state, 0, sizeof(sens_itf_mote_sm_state_t));
+	sm_state.state = SENS_ITF_STATE_INIT;
+
+	//buBufFlush();
+    opentimers_start(SENS_ITF_SM_TICK_MS, TIMER_PERIODIC, TIME_MS, (opentimers_cbt) sens_itf_mote_tick);
+
+
+    // prepare the resource descriptor
 /*
-// Serial or SPI interrupt, called when a new byte is received
-static void sens_itf_sensor_rx_byte(void)
-{
-    uint8_t value;
-    
-    // DISABLE INTERRUPTS
-    if (frame_timeout)
-    {   
-        // empty register
-        return;
-    }
 
-	value = 0;// PUT CHANNEL HERE (uint8_t) pcSerial.getc();
-	
-    if (num_rx_bytes < SENS_ITF_MAX_FRAME_SIZE)
-        rx_frame[num_rx_bytes] = value;
-    
-    num_rx_bytes++;
-    if (num_rx_bytes >= SENS_ITF_MAX_FRAME_SIZE)
-        num_rx_bytes = 0;
+    sensor_vars.desc.path0len            = sizeof(sensor_path0)-1;
+    sensor_vars.desc.path0val            = (uint8_t*)(&sensor_path0);
+    sensor_vars.desc.path1len            = 0;
+    sensor_vars.desc.path1val            = NULL;
+    sensor_vars.desc.componentID         = COMPONENT_RHELI;    //MUDAR
+    sensor_vars.desc.callbackRx          = &sensor_receive;
+    sensor_vars.desc.callbackSendDone    = &sensor_sendDone;
 
-    // ENABLE INTERRUPTS
-}
+    opencoap_register(&sensor_vars.desc);
+    sensor_vars.timerId    = opentimers_start(1000,
+                                             TIMER_PERIODIC,TIME_MS,
+                                             sensor_timer);
+
 */
 #endif
 
-extern sens_itf_mote_sm_table_t sens_itf_mote_sm_table[];
+    return 0;
+}
 
-static uint8_t sens_itf_mote_send_frame(uint8_t *frame, uint8_t size)
-{
-    //int16_t sent;
-   // return (sent < 0 ? 0 : (uint8_t) sent); // CHECK AGAIN
-	return 0;
+//=========================== private ==========================================
+
+owerror_t sensor_receive(OpenQueueEntry_t* msg,
+                      coap_header_iht*  coap_header,
+                      coap_option_iht*  coap_options) {
+   owerror_t outcome;
+   uint8_t rawdata[127];
+
+   if (coap_header->Code==COAP_CODE_REQ_POST)
+   {
+	   //TODO!!!! INCLUDE WRITE SENSOR HERE
+
+      // start/stop the data generation to data server
+      if (msg->payload[0]=='1')
+      {
+         //restart timer
+        // opentimers_restart(rxl1_vars.timerId);
+
+      } else {
+         //stop timer
+         //opentimers_stop(rxl1_vars.timerId);
+      }
+
+      // reset packet payload
+      msg->payload                     = &(msg->packet[127]);
+      msg->length                      = 0;
+
+      // CoAP header
+      coap_header->Code                = COAP_CODE_RESP_VALID;
+
+      outcome = E_SUCCESS;
+
+   }
+   else if (coap_header->Code==COAP_CODE_REQ_GET)
+   {
+      // return current sensor value
+
+      // reset packet payload
+      msg->payload                     = &(msg->packet[127]);
+      msg->length                      = 0;
+
+      // CoAP payload (8 bytes of XL data)
+      packetfunctions_reserveHeaderSize(msg,9);
+
+      //sensitive_accel_temperature_get_measurement(&rawdata[0]);
+
+      msg->payload[0] = COAP_PAYLOAD_MARKER;
+
+      memcpy(&msg->payload[1],&rawdata[8],8);
+
+      // set the CoAP header
+      coap_header->Code                = COAP_CODE_RESP_CONTENT;
+
+      outcome                          = E_SUCCESS;
+
+   }
+   else {
+      // return an error message
+      outcome = E_FAIL;
+   }
+
+   return outcome;
+}
+
+void sensor_timer() {
+   OpenQueueEntry_t* pkt;
+   owerror_t           outcome;
+   uint8_t           numOptions;
+   uint8_t           rawdata[127];
+
+
+   // create a CoAP RD packet
+   pkt = openqueue_getFreePacketBuffer(COMPONENT_RXL1);
+   if (pkt==NULL) {
+      openserial_printError(COMPONENT_RXL1,ERR_NO_FREE_PACKET_BUFFER,
+                            (errorparameter_t)0,
+                            (errorparameter_t)0);
+      openqueue_freePacketBuffer(pkt);
+      return;
+   }
+   // take ownership over that packet
+   pkt->creator    = COMPONENT_RXL1;
+   pkt->owner      = COMPONENT_RXL1;
+   // CoAP payload (2 bytes of temperature data)
+   packetfunctions_reserveHeaderSize(pkt,2);
+   //sensitive_accel_temperature_get_measurement(&rawdata[0]);
+   pkt->payload[0] = rawdata[8];
+   pkt->payload[1] = rawdata[9];
+   numOptions = 0;
+   // location-path option
+   packetfunctions_reserveHeaderSize(pkt,sizeof(sensor_path0)-1);
+   memcpy(&pkt->payload[0],&sensor_path0,sizeof(sensor_path0)-1);
+   packetfunctions_reserveHeaderSize(pkt,1);
+   //pkt->payload[0]                  = ((COAP_OPTION_NUM_URIPATH << (4 | sizeof(sensor_path0)-1);
+   numOptions++;
+   // content-type option
+   packetfunctions_reserveHeaderSize(pkt,2);
+   //pkt->payload[0]                  = COAP_OPTION_NUM_CONTENTFORMAT << 4 | 1;
+   pkt->payload[1]                  = COAP_MEDTYPE_APPOCTETSTREAM;
+   numOptions++;
+   // metadata
+   pkt->l4_destination_port         = WKP_UDP_COAP;
+   pkt->l3_destinationAdd.type = ADDR_128B;
+   memcpy(&pkt->l3_destinationAdd.addr_128b[0],&ipAddr_motesEecs,16);
+   // send
+   outcome = opencoap_send(pkt,
+                           COAP_TYPE_NON,
+                           COAP_CODE_REQ_PUT,
+                           numOptions,
+                           &sensor_vars.desc);
+   // avoid overflowing the queue if fails
+   if (outcome==E_FAIL) {
+      openqueue_freePacketBuffer(pkt);
+   }
+
+
+   return;
+}
+
+void sensor_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
+   openqueue_freePacketBuffer(msg);
 }
 
 static uint8_t sens_itf_mote_pack_send_frame(sens_itf_cmd_req_t *cmd, uint8_t cmd_size)
@@ -137,9 +303,11 @@ static uint8_t sens_itf_mote_pack_send_frame(sens_itf_cmd_req_t *cmd, uint8_t cm
 
 static uint8_t sens_itf_mote_sm_func_pt_val_ans(sens_itf_mote_sm_state_t *st)
 {
-	uint8_t point;
-	uint8_t size;
+	uint8_t point,ui8Len;
+	uint8_t size,ret;
     uint8_t ans_size;
+    uint8_t *pui8Buf;
+    uint32_t ui32Data;
 
     point = acquisition_schedule.scan.index[st->point_index];
     ans_size = 6 + datatype_sizes[sensor_points.points[point].desc.type];
@@ -156,13 +324,14 @@ static uint8_t sens_itf_mote_sm_func_pt_val_ans(sens_itf_mote_sm_state_t *st)
     st->retries = 0;
     st->point_index++;
 
+	leds_debug_toggle();  //LED3
+
     return SENS_ITF_STATE_EXEC_OK;
 }
 
-
 static uint8_t sens_itf_mote_sm_func_req_pt_val(sens_itf_mote_sm_state_t *st)
 {
-	uint8_t point;
+    uint8_t point;
 
 	// end of point reading
     if(st->point_index >= acquisition_schedule.scan.num_of_points)
@@ -179,6 +348,7 @@ static uint8_t sens_itf_mote_sm_func_req_pt_val(sens_itf_mote_sm_state_t *st)
     st->trmout_counter = 0;
     st->trmout = MS2TICK(5000);
     return sens_itf_mote_pack_send_frame(&cmd, 4);
+
 }
 
 static uint8_t sens_itf_mote_sm_func_run_sch(sens_itf_mote_sm_state_t *st)
@@ -211,6 +381,14 @@ static uint8_t sens_itf_mote_sm_func_run_sch(sens_itf_mote_sm_state_t *st)
     	return SENS_ITF_STATE_EXEC_WAIT_OK;
 }
 
+/*
+
+{
+    sens_itf_mote_read_point(acquisition_schedule.points[n].index);
+    acquisition_schedule.points[n].counter = acquisition_schedule.points[n].sampling_time_x250ms;
+}
+*/
+
 static uint8_t sens_itf_mote_sm_func_build_sch(sens_itf_mote_sm_state_t *st)
 {
 	uint8_t n, m;
@@ -223,7 +401,7 @@ static uint8_t sens_itf_mote_sm_func_build_sch(sens_itf_mote_sm_state_t *st)
             (sensor_points.points[n].desc.sampling_time_x250ms > 0))
         {
             acquisition_schedule.points[m].index = n;
-            acquisition_schedule.points[m].counter = sensor_points.points[n].desc.sampling_time_x250ms;;
+            acquisition_schedule.points[m].counter = sensor_points.points[n].desc.sampling_time_x250ms;
             acquisition_schedule.points[m].sampling_time_x250ms = sensor_points.points[n].desc.sampling_time_x250ms;
 
             m++;
@@ -255,6 +433,8 @@ static uint8_t sens_itf_mote_sm_func_pt_desc_ans(sens_itf_mote_sm_state_t *st)
 static uint8_t sens_itf_mote_sm_func_req_pt_desc(sens_itf_mote_sm_state_t *st)
 {
 	// end of cyclic point description reading
+	board_info.num_of_points = 1;  //teste rff
+
     if(st->point_index >= board_info.num_of_points)
     	return SENS_ITF_STATE_EXEC_WAIT_ABORT;
 
@@ -295,6 +475,7 @@ static uint8_t sens_itf_mote_sm_func_req_brd_id(sens_itf_mote_sm_state_t *st)
     return sens_itf_mote_pack_send_frame(&cmd, 4);
 }
 
+
 static uint8_t sens_itf_mote_sm_func_proc_itf_ver_ans(sens_itf_mote_sm_state_t *st)
 {
     uint8_t size;
@@ -302,35 +483,61 @@ static uint8_t sens_itf_mote_sm_func_proc_itf_ver_ans(sens_itf_mote_sm_state_t *
 
     size = sens_itf_unpack_cmd_res(&ans, frame, ans_size);
 
-    if (size != ans_size)
+	if (size != ans_size)
     	return SENS_ITF_STATE_EXEC_ERROR;
 
     if ((SENS_ITF_ANS_OK != ans.hdr.status) || (SENS_ITF_LATEST_VERSION != ans.payload.itf_version_cmd.version))
     	return SENS_ITF_STATE_EXEC_ERROR;
 
+
     return SENS_ITF_STATE_EXEC_OK;
 }
 
+
 static uint8_t sens_itf_mote_sm_func_wait_ans(sens_itf_mote_sm_state_t *st)
 {
+
+	/* TODO!!!! MELHORAR O Tratamento do final de frame
+	 * Devido ao problema da UART nao estar reconhecendo o final do frame
+	 * a rotina esperar um ciclo de scan (250ms) entao se recebeu algum dado ele diz
+	 * que recebeu o frame. Posteriormente sera tratado o frame e verificado se recebeu tudo
+	 */
+	if ((st->trmout_counter > 0) && (num_rx_bytes > 3))
+	{
+		st->frame_arrived = true;
+		num_rx_bytes = 0;
+	}
+
 	if(st->frame_arrived)
+	{
+		st->frame_arrived = false;
 		return SENS_ITF_STATE_EXEC_WAIT_STOP;
+	}
 
 	st->trmout_counter++;
 
 	if(st->trmout_counter > st->trmout)
-		return SENS_ITF_STATE_EXEC_WAIT_ABORT;
+	{
+		//se ocorreu timeout e existe bytes no buffer rx considero que recebeu msg
+		if (num_rx_bytes > 0)
+		{
+			return SENS_ITF_STATE_EXEC_WAIT_STOP;
+		}
+		else
+		{
+			return SENS_ITF_STATE_EXEC_WAIT_ABORT;
+		}
+	}
 
 	return SENS_ITF_STATE_EXEC_WAIT_OK;
 }
-
 
 
 static uint8_t sens_itf_mote_sm_func_req_ver(sens_itf_mote_sm_state_t *st)
 {
     cmd.hdr.addr = SENS_ITF_REGMAP_ITF_VERSION;
     st->trmout_counter = 0;
-    st->trmout = MS2TICK(5000);
+    st->trmout = MS2TICK(500);
     return sens_itf_mote_pack_send_frame(&cmd, 4);
 }
 
@@ -346,17 +553,31 @@ static uint8_t sens_itf_mote_sm_func_init(sens_itf_mote_sm_state_t *st)
 	memset(&acquisition_schedule, 0, sizeof(acquisition_schedule));
 	memset(st, 0, sizeof(sens_itf_mote_sm_state_t));
 
+	num_rx_bytes=0;
+
+
 	return ret;
 }
 
 void sens_itf_mote_sm(void)
 {
 	uint8_t ret;
+
 	#ifdef TRACE_ON
 	uint8_t ls = sm_state.state;
 	#endif
 
 	ret = sens_itf_mote_sm_table[sm_state.state].func(&sm_state);
+
+	if (flagErrorOccurred)
+	{
+      //reset uart
+	  uart1_clearTxInterrupts();
+	  uart1_clearRxInterrupts();      // clear possible pending interrupts
+	  uart1_enableInterrupts();       // Enable USCI_A1 TX & RX interrupt
+
+	  flagErrorOccurred = 0;
+	}
 
 	switch(ret)
 	{
@@ -380,9 +601,16 @@ void sens_itf_mote_sm(void)
 	#ifdef TRACE_ON
     printf("sens_itf_mote_sm %d -> %d\n",ls,sm_state.state);
 	#endif
+
 }
 
-sens_itf_mote_sm_table_t sens_itf_mote_sm_table[] =
+static void sens_itf_mote_tick(void)
+{
+    scheduler_push_task((task_cbt) sens_itf_mote_sm, TASKPRIO_SENS_ITF_MAIN);
+}
+
+
+const sens_itf_mote_sm_table_t sens_itf_mote_sm_table[] =
 {     //{ func,                                   next_state,                      abort_state,                error_state         }
 		{ sens_itf_mote_sm_func_init,             SENS_ITF_STATE_SEND_ITF_VER,     SENS_ITF_STATE_INIT,        SENS_ITF_STATE_INIT }, // SENS_ITF_STATE_INIT
 		{ sens_itf_mote_sm_func_req_ver,          SENS_ITF_STATE_WAIT_ITF_VER_ANS, SENS_ITF_STATE_INIT,        SENS_ITF_STATE_INIT }, // SENS_ITF_STATE_SEND_ITF_VER
@@ -401,20 +629,135 @@ sens_itf_mote_sm_table_t sens_itf_mote_sm_table[] =
 		{ sens_itf_mote_sm_func_pt_val_ans,       SENS_ITF_STATE_SEND_PT_VAL,      SENS_ITF_STATE_INIT,        SENS_ITF_STATE_INIT }, // SENS_ITF_STATE_PROC_PT_VAL
 };
 
-static void sens_itf_mote_tick(void)
+
+/**************************************************************************//**
+* @brief    This function puts up to \e size bytes into the BSP UART TX
+*           buffer and starts to transfer data over UART.
+*
+*           If \b BSP_UART_ALL_OR_NOTHING is defined, data is put into the
+*           TX buffer only if there is room for all \e size bytes.
+*
+* @param    frame            is a pointer to the source buffer.
+* @param    size            is the number of bytes to transfer.
+*
+* @return   Returns the number of bytes actually copied to the TX buffer.
+******************************************************************************/
+
+uint8_t sens_itf_mote_send_frame(uint8_t *frame, uint8_t size)
 {
-    scheduler_push_task((task_cbt) sens_itf_mote_sm, TASKPRIO_SENS_ITF_MAIN);
+ 	uint16_t ui16Length=size;
+    register uint16_t ui16Idx = 0;
+
+    DISABLE_INTERRUPTS();
+    while((ui16Idx < ui16Length))
+    {
+        UARTCharPut(BSP_UART_BASE, frame[ui16Idx++]);
+    }
+    ENABLE_INTERRUPTS();
+
+    return ((uint8_t) ui16Length);
 }
 
-uint8_t sens_itf_mote_init(void)
+/**************************************************************************//**
+* @brief    This function pushes a byte from the UART RX FIFO to the BSP UART
+*           RX buffer. The function handles RX buffer wrap-around, but does not
+*           handle RX buffer overflow. The function should only be called if
+*           there is data in the UART RX FIFO. It modifies volatile variables
+*           and should only be called when interrupts are disabled.
+*
+* @brief    None
+******************************************************************************/
+static void buBufPushByte(void)
 {
+    uint32_t value;
 
-	memset(&sm_state, 0, sizeof(sens_itf_mote_sm_state_t));
-	sm_state.state = SENS_ITF_STATE_INIT;
+    // Push byte from RX FIFO to buffer
+    value = UARTCharGetNonBlocking(SENS_ITF_UART_BASE);
 
-    //opentimers_start(SENS_ITF_SM_TICK_MS, TIMER_PERIODIC, TIME_MS, (opentimers_cbt) sens_itf_mote_tick);
+    if (num_rx_bytes < SENS_ITF_MAX_FRAME_SIZE)
+    	frame[num_rx_bytes] = (uint8_t) value;
 
-    return 0;
+    num_rx_bytes++;
+    if (num_rx_bytes >= SENS_ITF_MAX_FRAME_SIZE)
+        num_rx_bytes = 0;
 }
 
+
+/**************************************************************************//**
+* @brief    This function flushes the ringbuffer control structure specified
+*           by \e psBuf.
+*
+* @param    psBuf       is a pointer to a \e tBuBuf ringbuffer structure.
+*
+* @return   None
+******************************************************************************/
+static void buBufFlush(void)
+{
+    // Start of critical section
+    bool bIntDisabled = IntMasterDisable();
+
+    num_rx_bytes = 0;
+
+    if(!bIntDisabled)
+    {
+        IntMasterEnable();
+    }
+}
+
+
+void uart1_isr_private(void)
+{
+    uint32_t ui32IntBm = UARTIntStatus(SENS_ITF_UART_BASE, 1);
+    uint8_t dummy=0;
+
+    UARTIntClear(SENS_ITF_UART_BASE, (ui32IntBm & 0xF0));
+
+    //ERROR LINE
+    if (ui32IntBm & (UART_INT_BE | UART_INT_PE | UART_INT_FE))
+	{
+    	UARTRxErrorClear(SENS_ITF_UART_BASE);
+    	buBufFlush();
+    	flagErrorOccurred = 1;
+        //while(UARTCharsAvail(SENS_ITF_UART_BASE))
+        //{
+        //	dummy = UARTCharGetNonBlocking(SENS_ITF_UART_BASE);
+        //}
+	}
+    else if(ui32IntBm & (UART_INT_OE))
+	{    //OVERRUN
+    	UARTRxErrorClear(SENS_ITF_UART_BASE);
+        buBufFlush();
+    	flagErrorOccurred = 1;
+    	//dummy = UARTCharGetNonBlocking(SENS_ITF_UART_BASE);
+        //while(UARTCharsAvail(SENS_ITF_UART_BASE))
+        //{
+        //	dummy = UARTCharGetNonBlocking(SENS_ITF_UART_BASE);
+        //}
+	}
+    else if(ui32IntBm & (UART_INT_RX | UART_INT_RT))
+    {
+        //
+        // Put received bytes into buffer
+        //
+        //while(UARTCharsAvail(BSP_UART_BASE) && !BU_IS_BUF_FULL(&sBuBufRx))
+        while(UARTCharsAvail(SENS_ITF_UART_BASE))
+        {
+            buBufPushByte();
+        }
+
+
+        //if (ui32IntBm & UART_INT_RT)
+        //{
+        //	sm_state.frame_arrived = true;
+        //}
+
+    }
+    else if(ui32IntBm & UART_INT_TX)
+    {
+        //while(UARTSpaceAvail(BSP_UART_BASE) && (!BU_IS_BUF_EMPTY(&sBuBufTx)))
+        //{
+        //    buBufPopByte();
+        //}
+    }
+}
 

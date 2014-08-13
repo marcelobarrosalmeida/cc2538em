@@ -86,19 +86,19 @@ opentimer_id_t opentimers_start(uint32_t duration, timer_type_t type, time_type_
          opentimers_vars.timersBuf[id].wraps_remaining   = (duration*PORT_TICS_PER_MS/MAX_TICKS_IN_SINGLE_CLOCK);//65535=maxValue of uint16_t
       } else if (timetype==TIME_TICS) {
          opentimers_vars.timersBuf[id].period_ticks      = duration;
-         opentimers_vars.timersBuf[id].wraps_remaining   = (duration/MAX_TICKS_IN_SINGLE_CLOCK);//65535=maxValue of uint16_t  
+         opentimers_vars.timersBuf[id].wraps_remaining   = (duration/MAX_TICKS_IN_SINGLE_CLOCK);//65535=maxValue of uint16_t
       } else {
          while (1); //error
       }
       //if the number of ticks falls below a 16bit value, use it, otherwise set to max 16bit value
       if(opentimers_vars.timersBuf[id].wraps_remaining==0){
-         if (timetype==TIME_MS){ 
+         if (timetype==TIME_MS){
             opentimers_vars.timersBuf[id].ticks_remaining   = duration*PORT_TICS_PER_MS;
          } else if (timetype==TIME_TICS) {
             opentimers_vars.timersBuf[id].ticks_remaining   = duration;
          } else {
             // this should never happpen!
-   
+
             // we can not print from within the drivers. Instead:
             // blink the error LED
             leds_error_blink();
@@ -107,7 +107,7 @@ opentimer_id_t opentimers_start(uint32_t duration, timer_type_t type, time_type_
          }
       }else{
          opentimers_vars.timersBuf[id].ticks_remaining = MAX_TICKS_IN_SINGLE_CLOCK;
-      }                                                   
+      }
       opentimers_vars.timersBuf[id].type              = type;
       opentimers_vars.timersBuf[id].isrunning         = TRUE;
       opentimers_vars.timersBuf[id].callback          = callback;
@@ -118,7 +118,7 @@ opentimer_id_t opentimers_start(uint32_t duration, timer_type_t type, time_type_
             (opentimers_vars.running==FALSE)
             ||
             (opentimers_vars.timersBuf[id].ticks_remaining < opentimers_vars.currentTimeout)
-      ) {  
+      ) {
          opentimers_vars.currentTimeout            = opentimers_vars.timersBuf[id].ticks_remaining;
          if (opentimers_vars.running==FALSE) {
             bsp_timer_reset();
@@ -147,7 +147,7 @@ void  opentimers_setPeriod(opentimer_id_t id,time_type_t timetype,uint32_t newDu
       opentimers_vars.timersBuf[id].wraps_remaining   = (newDuration/MAX_TICKS_IN_SINGLE_CLOCK);//65535=maxValue of uint16_t
    } else {
       // this should never happpen!
-      
+
       // we can not print from within the drivers. Instead:
       // blink the error LED
       leds_error_blink();
@@ -197,11 +197,11 @@ corresponding callback(s), and restarts the hardware timer with the next timer
 to expire.
  */
 void opentimers_timer_callback() {
-   
+
    opentimer_id_t   id;
    PORT_TIMER_WIDTH min_timeout;
    bool             found;
-    
+
    // step 1. Identify expired timers
    for(id=0; id<MAX_NUM_TIMERS; id++) {
       if (opentimers_vars.timersBuf[id].isrunning==TRUE) {
@@ -226,7 +226,7 @@ void opentimers_timer_callback() {
 
             // update its counter
             opentimers_vars.timersBuf[id].ticks_remaining -= opentimers_vars.currentTimeout;
-         }   
+         }
       }
    }
 
@@ -242,7 +242,7 @@ void opentimers_timer_callback() {
          if (opentimers_vars.timersBuf[id].type==TIMER_PERIODIC) {
             opentimers_vars.timersBuf[id].wraps_remaining   = (opentimers_vars.timersBuf[id].period_ticks/MAX_TICKS_IN_SINGLE_CLOCK);//65535=maxValue of uint16_t
             //if the number of ticks falls below a 16bit value, use it, otherwise set to max 16bit value
-            if(opentimers_vars.timersBuf[id].wraps_remaining==0)                                                
+            if(opentimers_vars.timersBuf[id].wraps_remaining==0)
                opentimers_vars.timersBuf[id].ticks_remaining   = opentimers_vars.timersBuf[id].period_ticks;
             else
                opentimers_vars.timersBuf[id].ticks_remaining = MAX_TICKS_IN_SINGLE_CLOCK;
@@ -286,11 +286,11 @@ void opentimers_sleepTimeCompesation(uint16_t sleepTime)
    opentimer_id_t   id;
    PORT_TIMER_WIDTH min_timeout;
    bool             found;
-   
+
    //step 1. reCount the ticks_remain after waking up from sleep
    for(id=0; id<MAX_NUM_TIMERS; id++)
    {
-     if (opentimers_vars.timersBuf[id].isrunning==TRUE) 
+     if (opentimers_vars.timersBuf[id].isrunning==TRUE)
      {
        if(opentimers_vars.timersBuf[id].ticks_remaining > sleepTime)
        {
@@ -310,7 +310,7 @@ void opentimers_sleepTimeCompesation(uint16_t sleepTime)
        }
      }
    }
-   
+
    // step 2. call callbacks of expired timers
    for(id=0; id<MAX_NUM_TIMERS; id++) {
       if (opentimers_vars.timersBuf[id].hasExpired==TRUE){
@@ -323,7 +323,7 @@ void opentimers_sleepTimeCompesation(uint16_t sleepTime)
          if (opentimers_vars.timersBuf[id].type==TIMER_PERIODIC) {
             opentimers_vars.timersBuf[id].wraps_remaining   = (opentimers_vars.timersBuf[id].period_ticks/MAX_TICKS_IN_SINGLE_CLOCK);//65535=maxValue of uint16_t
             //if the number of ticks falls below a 16bit value, use it, otherwise set to max 16bit value
-            if(opentimers_vars.timersBuf[id].wraps_remaining==0)                                                
+            if(opentimers_vars.timersBuf[id].wraps_remaining==0)
                opentimers_vars.timersBuf[id].ticks_remaining   = opentimers_vars.timersBuf[id].period_ticks;
             else
                opentimers_vars.timersBuf[id].ticks_remaining = MAX_TICKS_IN_SINGLE_CLOCK;
@@ -334,7 +334,7 @@ void opentimers_sleepTimeCompesation(uint16_t sleepTime)
       }
 
    }
-   
+
    // step 3. find the minimum remaining timeout among running timers
    found = FALSE;
    for(id=0;id<MAX_NUM_TIMERS;id++) {
