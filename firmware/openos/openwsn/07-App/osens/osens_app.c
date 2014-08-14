@@ -21,7 +21,135 @@ coap_resource_desc_t osens_desc_vars;
 const uint8_t osens_val_path0 [] = "s";
 coap_resource_desc_t osens_val_vars;
 
-static osens_point_ctrl_t sensor_points;
+static uint8_t digits[] = "0123456789";
+//static char *data_types[10] = { "u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f", "d" };
+
+static uint8_t * insert_str(uint8_t *buffer, uint8_t *str, uint32_t len)
+{
+	uint8_t *pbuf = buffer;
+	*pbuf++ = '"';
+	memcpy(pbuf,str,len);
+	pbuf += len;
+	*pbuf++ = '"';
+	return pbuf;
+}
+
+// based on http://stackoverflow.com/questions/9655202/how-to-convert-integer-to-string-in-c
+static uint8_t * insert_uint(uint8_t *buffer, uint64_t value)
+{
+    uint8_t* pbuf = buffer;
+    uint8_t *pend;
+    uint64_t shifter;
+
+    // count the number of digits
+    shifter = value;
+    do
+    {
+        ++pbuf;
+        shifter = shifter / 10;
+    } while(shifter);
+    //*p = '\0';
+    pend = pbuf;
+
+    // now fill the digits
+    do
+    {
+        *--pbuf = digits[value % 10];
+        value = value / 10;
+    } while(value);
+
+    return pend;
+}
+
+static uint8_t * insert_int(uint8_t *buffer, int64_t value)
+{
+    uint8_t* pbuf = buffer;
+
+    // add signal, invert value and call the unsigned version
+    if(value < 0)
+    {
+        *pbuf++ = '-';
+        value *= -1;
+    }
+
+    return insert_uint(pbuf, (uint64_t) value);
+}
+
+
+// based on // http://www.ragestorm.net/blogs/?p=57
+// does it works ?
+static uint8_t * insert_float(uint8_t *buffer, double value)
+{
+	uint8_t* pbuf = buffer;
+	uint32_t x = *((uint32_t*)&value);
+	uint32_t frac, base, c, sign, exp, man;
+
+	sign = x >> 31;
+	exp = ((x >> 23) & 0xff) - 127;
+	man = x & ((1 << 23) - 1);
+	man |= 1 << 23;
+
+	if (sign)
+		*pbuf++ = '-';
+
+	pbuf = insert_uint(pbuf, man >> (23 - exp));
+	*pbuf++ = '.';
+
+	frac = man & ((1 << (23-exp)) - 1);
+	base = 1 << (23 - exp);
+	c = 0;
+
+	while (frac != 0 && c++ < 6)
+	{
+		frac *= 10;
+		pbuf = insert_uint(pbuf, (frac / base));
+		frac %= base;
+	}
+
+	return pbuf;
+}
+
+static uint8_t * insert_point_val(uint8_t *buffer, osens_point_t *point)
+{
+	uint8_t *pbuf = buffer;
+    switch (point->type)
+    {
+    case OSENS_DT_U8:
+    	pbuf = insert_uint(pbuf,(uint64_t) point->value.u8);
+        break;
+    case OSENS_DT_U16:
+    	pbuf = insert_uint(pbuf,(uint64_t) point->value.u16);
+        break;
+    case OSENS_DT_U32:
+    	pbuf = insert_uint(pbuf,(uint64_t) point->value.u32);
+        break;
+    case OSENS_DT_U64:
+    	pbuf = insert_uint(pbuf,(uint64_t) point->value.u64);
+        break;
+    case OSENS_DT_S8:
+    	pbuf = insert_int(pbuf,(uint64_t) point->value.s8);
+        break;
+    case OSENS_DT_S16:
+    	pbuf = insert_int(pbuf,(uint64_t) point->value.s16);
+        break;
+    case OSENS_DT_S32:
+    	pbuf = insert_int(pbuf,(uint64_t) point->value.s32);
+        break;
+    case OSENS_DT_S64:
+    	pbuf = insert_int(pbuf,(uint64_t) point->value.s64);
+        break;
+    case OSENS_DT_FLOAT:
+    	pbuf = insert_float(pbuf,point->value.fp32);
+        break;
+    case OSENS_DT_DOUBLE:
+    	pbuf = insert_float(pbuf,(float) point->value.fp64);
+        break;
+    default:
+        break;
+    }
+
+    return pbuf;
+}
 
 void sensors_init(void) {
 
@@ -45,94 +173,88 @@ void sensors_init(void) {
     osens_val_vars.callbackRx = &osens_val_receive;
     osens_val_vars.callbackSendDone = &osens_val_sendDone;
 
+    osens_init();
+
     // register with the CoAP modules
     opencoap_register(&osens_desc_vars);
     opencoap_register(&osens_val_vars);
 }
 
-static uint8_t * insert_str(uint8_t *buffer, uint8_t *str, uint32_t len)
-{
-	uint8_t *p = buffer;
-	memcpy(buffer,str,len);
-	return (p+len);
-}
-
-// based on http://stackoverflow.com/questions/9655202/how-to-convert-integer-to-string-in-c
-static uint8_t * insert_uint32(uint8_t *buffer, uint32_t val)
-{
-    uint8_t digit[] = "0123456789";
-    uint8_t* p = buffer;
-    uint8_t *pf;
-    uint32_t shifter;
-
-    /*
-    if(val < 0)
-    {
-        *p++ = '-';
-        val *= -1;
-        n++;
-    }
-    */
-
-    // count the number of digits
-    shifter = val;
-    do
-    {
-        ++p;
-        shifter = shifter / 10;
-    } while(shifter);
-    //*p = '\0';
-    pf = p;
-
-    // now fill the digits
-    do
-    {
-        *--p = digit[val % 10];
-        val = val/10;
-    } while(val);
-
-    return pf;
-}
-
 owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_header, coap_option_iht*  coap_options)
 {
-	osens_brd_id_t board_info;
     owerror_t outcome = E_FAIL;
-    uint8_t n;
+    uint8_t n = 0;
     uint8_t buf[128];
     uint8_t *pbuf = &buf[0];
 
-    switch (coap_header->Code) {
+    switch (coap_header->Code)
+    {
     case COAP_CODE_REQ_GET:
         // reset packet payload
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
 
-        if(sens_get_brd_desc(&board_info))
-        {
-            if (coap_options[1].length == 0)
-            {
-            	pbuf = insert_str(pbuf,(uint8_t*)"{\"ver\":",7);
-            	pbuf = insert_uint32(pbuf,board_info.hardware_revision);
-            	pbuf = insert_str(pbuf,(uint8_t*)"{\"model\":",9);
-            	pbuf = insert_str(pbuf,board_info.model,strlen((char *)board_info.model));
-            	pbuf = insert_str(pbuf,(uint8_t*)"{\"id\":",6);
-            	pbuf = insert_uint32(pbuf,board_info.sensor_id);
-            	pbuf = insert_str(pbuf,(uint8_t*)"{\"npts\":",8);
-            	pbuf = insert_uint32(pbuf,board_info.num_of_points);
-            	pbuf = insert_str(pbuf,(uint8_t*)"}",1);
+		// /d
+		if (coap_options[1].length == 0)
+		{
+			osens_brd_id_t board_info;
 
-            	n = ((uint32_t)pbuf - (uint32_t)buf);
+			if(osens_get_brd_desc(&board_info))
+			{
+				pbuf = insert_str(pbuf,(uint8_t*)"{\"ver\":",7);
+				pbuf = insert_uint(pbuf,board_info.hardware_revision);
+				pbuf = insert_str(pbuf,(uint8_t*)",\"model\":",9);
+				pbuf = insert_str(pbuf,board_info.model,strlen((char *)board_info.model));
+				pbuf = insert_str(pbuf,(uint8_t*)",\"id\":",6);
+				pbuf = insert_uint(pbuf,board_info.sensor_id);
+				pbuf = insert_str(pbuf,(uint8_t*)",\"npts\":",8);
+				pbuf = insert_uint(pbuf,board_info.num_of_points);
+				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
 
-            	packetfunctions_reserveHeaderSize(msg, 1 + n);
-                msg->payload[0] = COAP_PAYLOAD_MARKER;
+				outcome = E_SUCCESS;
+			}
+		} // /d/pt/1 or /d/pt/12
+		else if (coap_options[1].length == 2 &&
+				coap_options[1].pValue[0] == 'p' &&
+				coap_options[1].pValue[0] == 't' &&
+				(coap_options[2].length == 1 || coap_options[2].length == 2))
+		{
+			osens_point_desc_t pt_desc;
+			uint8_t index;
 
-                memcpy(&msg->payload[1], buf, n);
-                coap_header->Code = COAP_CODE_RESP_CONTENT;
-                outcome = E_SUCCESS;
-            }
+			if(coap_options[2].length == 2)
+				index = (coap_options[2].pValue[0] - 0x30) * 10 + (coap_options[2].pValue[1] - 0x30);
+			else
+				index = coap_options[2].pValue[0] - 0x30;
 
-        }
+			if(osens_get_point_desc(index,&pt_desc))
+			{
+
+				pbuf = insert_str(pbuf,(uint8_t*)"{\"name\":",8);
+				pbuf = insert_str(pbuf,pt_desc.name,strlen((char*)pt_desc.name));
+				pbuf = insert_str(pbuf,(uint8_t*)",\"type\":",8);
+				pbuf = insert_uint(pbuf,pt_desc.type);
+				pbuf = insert_str(pbuf,(uint8_t*)",\"unit\":",8);
+				pbuf = insert_uint(pbuf,pt_desc.unit);
+				pbuf = insert_str(pbuf,(uint8_t*)",\"rights\":",10);
+				pbuf = insert_uint(pbuf,pt_desc.access_rights);
+				pbuf = insert_str(pbuf,(uint8_t*)",\"scan\":",10);
+				pbuf = insert_uint(pbuf,pt_desc.sampling_time_x250ms);
+				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
+
+				outcome = E_SUCCESS;
+			}
+		}
+
+		if(outcome == E_SUCCESS)
+		{
+			n = ((uint32_t)pbuf - (uint32_t)buf);
+			packetfunctions_reserveHeaderSize(msg, 1 + n);
+			msg->payload[0] = COAP_PAYLOAD_MARKER;
+			memcpy(&msg->payload[1], buf, n);
+			coap_header->Code = COAP_CODE_RESP_CONTENT;
+		}
+
         break;
 
     case COAP_CODE_REQ_PUT:
@@ -160,7 +282,7 @@ owerror_t osens_val_receive(
     coap_option_iht*  coap_options
     ) {
     owerror_t outcome = E_FAIL;
-    uint8_t n, nb;
+    uint8_t n;
     uint8_t buf[128];
     uint8_t *pbuf = &buf[0];
 
@@ -170,20 +292,60 @@ owerror_t osens_val_receive(
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
 
-        /*
-        if (coap_options[1].length == 0) {
-            n = snprintf(buf, 80, "[{\"temp\":%u},{\"hum\":\"%u%%\"},{\"alarm\":%u}]",
-                ieee154e_vars.asn.bytes0and1 & 0xff,
-                (ieee154e_vars.asn.bytes0and1 >> 8) & 0xff,
-                ieee154e_vars.asn.bytes2and3 & 0xff);
+		// /s
+		if (coap_options[1].length == 0)
+		{
+			uint8_t m;
+			osens_point_t pt;
+			uint8_t num_points = osens_get_num_points();
 
-            packetfunctions_reserveHeaderSize(msg, 1 + n);
-            msg->payload[0] = COAP_PAYLOAD_MARKER;
+			pbuf = insert_str(pbuf,(uint8_t*)"[",1);
+			for(m = 0 ; m < num_points ; m++)
+			{
+				if(osens_get_point(m,&pt))
+				{
+					pbuf = insert_str(pbuf,(uint8_t*)"{\"idx\":",7);
+					pbuf = insert_uint(pbuf,m);
+					pbuf = insert_str(pbuf,(uint8_t*)",\"v\":",5);
+					pbuf = insert_point_val(pbuf,&pt);
+					if(m < (num_points - 1))
+						pbuf = insert_str(pbuf,(uint8_t*)"},",2);
+					else
+						pbuf = insert_str(pbuf,(uint8_t*)"}",1);
+				}
+			}
+			pbuf = insert_str(pbuf,(uint8_t*)"]",1);
 
-            memcpy(&msg->payload[1], buf, n );
-            coap_header->Code = COAP_CODE_RESP_CONTENT;
-            outcome = E_SUCCESS;
-        }*/
+			outcome = E_SUCCESS;
+		} // /s/1 or /s/12
+		else if(coap_options[1].length == 1 || coap_options[1].length == 2)
+		{
+			uint8_t index;
+			osens_point_t pt;
+
+			if(coap_options[1].length == 2)
+				index = (coap_options[1].pValue[0] - 0x30) * 10 + (coap_options[1].pValue[1] - 0x30);
+			else
+				index = coap_options[1].pValue[0] - 0x30;
+
+			if(osens_get_point(index,&pt))
+			{
+				pbuf = insert_str(pbuf,(uint8_t*)"{\"v\":",5);
+				pbuf = insert_point_val(pbuf,&pt);
+				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
+
+				outcome = E_SUCCESS;
+			}
+		}
+
+		if(outcome == E_SUCCESS)
+		{
+			n = ((uint32_t)pbuf - (uint32_t)buf);
+			packetfunctions_reserveHeaderSize(msg, 1 + n);
+			msg->payload[0] = COAP_PAYLOAD_MARKER;
+			memcpy(&msg->payload[1], buf, n);
+			coap_header->Code = COAP_CODE_RESP_CONTENT;
+		}
 
         break;
 

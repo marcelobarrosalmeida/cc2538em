@@ -121,7 +121,8 @@ static void buBufFlush(void);
 void bspLedToggle(uint8_t ui8Leds);
 void sensor_sendDone(OpenQueueEntry_t* msg, owerror_t error);
 
-uint8_t osens_mote_init(void) {
+uint8_t osens_mote_init(void)
+{
 
 #if (ENABLE_UART0_DAG == 0)
 	memset(&sm_state, 0, sizeof(osens_mote_sm_state_t));
@@ -476,7 +477,22 @@ const osens_mote_sm_table_t osens_mote_sm_table[] =
 		{ osens_mote_sm_func_pt_val_ans,       OSENS_STATE_SEND_PT_VAL,      OSENS_STATE_INIT,        OSENS_STATE_INIT }, // OSENS_STATE_PROC_PT_VAL
 };
 
-uint8_t sens_get_brd_desc(osens_brd_id_t *brd)
+uint8_t osens_init(void)
+{
+	osens_mote_init();
+}
+
+uint8_t osens_get_num_points(void)
+{
+	if(sm_state.state >= OSENS_STATE_SEND_PT_DESC)
+	{
+		return board_info.num_of_points;
+	}
+	else
+		return 0;
+}
+
+uint8_t osens_get_brd_desc(osens_brd_id_t *brd)
 {
 	if(sm_state.state >= OSENS_STATE_SEND_PT_DESC)
 	{
@@ -487,7 +503,7 @@ uint8_t sens_get_brd_desc(osens_brd_id_t *brd)
 		return 0;
 }
 
-uint8_t sens_get_point_desc(uint8_t index, osens_point_desc_t *desc)
+uint8_t osens_get_point_desc(uint8_t index, osens_point_desc_t *desc)
 {
 	if((sm_state.state >= OSENS_STATE_RUN_SCH) && (index < sensor_points.num_of_points))
 	{
@@ -498,11 +514,23 @@ uint8_t sens_get_point_desc(uint8_t index, osens_point_desc_t *desc)
 		return 0;
 }
 
-uint8_t sens_get_point_value(uint8_t index, osens_point_t *point)
+uint8_t osens_get_point(uint8_t index, osens_point_t *point)
 {
 	if((sm_state.state >= OSENS_STATE_RUN_SCH) && (index < sensor_points.num_of_points))
 	{
 		memcpy(point,&sensor_points.points[index].value,sizeof(sizeof(osens_point_t)));
+		return 1;
+	}
+	else
+		return 0;
+}
+
+uint8_t osens_set_point_value(uint8_t index, osens_point_t *point)
+{
+	if((sm_state.state >= OSENS_STATE_RUN_SCH) && (index < sensor_points.num_of_points))
+	{
+		// preserve the type
+		sensor_points.points[index].value.value = point->value;
 		return 1;
 	}
 	else

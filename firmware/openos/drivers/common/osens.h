@@ -85,9 +85,12 @@ typedef struct osens_point_s
 } osens_point_t;
 
 
-uint8_t sens_get_brd_desc(osens_brd_id_t *brd);
-uint8_t sens_get_point_desc(uint8_t index, osens_point_desc_t *desc);
-uint8_t sens_get_point_value(uint8_t index, osens_point_t *point);
+uint8_t osens_init(void);
+uint8_t osens_get_brd_desc(osens_brd_id_t *brd);
+uint8_t osens_get_num_points(void);
+uint8_t osens_get_point_desc(uint8_t index, osens_point_desc_t *desc);
+uint8_t osens_get_point(uint8_t index, osens_point_t *point);
+uint8_t osens_set_point_value(uint8_t index, osens_point_t *point);
 
 #endif /* __OSENS_H__ */
 
