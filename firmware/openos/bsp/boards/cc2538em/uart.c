@@ -20,7 +20,8 @@
 #include "ioc.h"
 #include "hw_ioc.h"
 #include "debugpins.h"
-#include "sens_itf.h"
+#include "osens.h"
+#include "osens_itf.h"
 
 //=========================== defines =========================================
 
@@ -35,7 +36,7 @@ typedef struct {
 } uart_vars_t;
 
 uart_vars_t uart_vars;
-extern uint8_t frame[SENS_ITF_MAX_FRAME_SIZE];
+extern uint8_t frame[OSENS_MAX_FRAME_SIZE];
 extern uint8_t num_rx_bytes;
 
 //=========================== prototypes ======================================
@@ -170,30 +171,30 @@ void uart1_init() {
    // reset local variables
    //memset(&uart_vars,0,sizeof(uart_vars_t));
 
-   UARTDisable(SENS_ITF_UART_BASE);
+   UARTDisable(OSENS_UART_BASE);
 
-   UARTIntDisable(SENS_ITF_UART_BASE, 0x1FFF);
+   UARTIntDisable(OSENS_UART_BASE, 0x1FFF);
 
-   UARTClockSourceSet(SENS_ITF_UART_BASE, UART_CLOCK_PIOSC);
+   UARTClockSourceSet(OSENS_UART_BASE, UART_CLOCK_PIOSC);
 
-	IOCPinConfigPeriphOutput (SENS_ITF_UART_BUS_BASE, SENS_ITF_UART_TXD, SENS_ITF_MUX_UART_TXD);
-	GPIOPinTypeUARTOutput    (SENS_ITF_UART_BUS_BASE, SENS_ITF_UART_TXD);
-	IOCPinConfigPeriphInput  (SENS_ITF_UART_BUS_BASE, SENS_ITF_UART_RXD, SENS_ITF_MUX_UART_RXD);
-	GPIOPinTypeUARTInput     (SENS_ITF_UART_BUS_BASE, SENS_ITF_UART_RXD);
+	IOCPinConfigPeriphOutput (OSENS_UART_BUS_BASE, OSENS_UART_TXD, OSENS_MUX_UART_TXD);
+	GPIOPinTypeUARTOutput    (OSENS_UART_BUS_BASE, OSENS_UART_TXD);
+	IOCPinConfigPeriphInput  (OSENS_UART_BUS_BASE, OSENS_UART_RXD, OSENS_MUX_UART_RXD);
+	GPIOPinTypeUARTInput     (OSENS_UART_BUS_BASE, OSENS_UART_RXD);
 
-   UARTConfigSetExpClk(SENS_ITF_UART_BASE, SysCtrlIOClockGet(), 115200,
+   UARTConfigSetExpClk(OSENS_UART_BASE, SysCtrlIOClockGet(), 115200,
                       (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
 
-   UARTEnable(SENS_ITF_UART_BASE);
+   UARTEnable(OSENS_UART_BASE);
 
-   UARTIntRegister(SENS_ITF_UART_BASE, uart1_isr_private);
-   UARTFIFODisable(SENS_ITF_UART_BASE);
-   //UARTTxIntModeSet(SENS_ITF_UART_BASE, UART_TXINT_MODE_EOT);
+   UARTIntRegister(OSENS_UART_BASE, uart1_isr_private);
+   UARTFIFODisable(OSENS_UART_BASE);
+   //UARTTxIntModeSet(OSENS_UART_BASE, UART_TXINT_MODE_EOT);
    //uart1_clearTxInterrupts();
    //uart1_clearRxInterrupts();      // clear possible pending interrupts
    uart1_enableInterrupts();
 
-   //IntEnable(SENS_ITF_INT_UART);
+   //IntEnable(OSENS_INT_UART);
 
 
 }
@@ -205,30 +206,30 @@ void uart1_setCallbacks(uart_tx_cbt txCb, uart_rx_cbt rxCb) {
 
 void uart1_enableInterrupts(){
     // UARTIntEnable  (BSP_UART_BASE, (UART_INT_RX | UART_INT_RT | UART_INT_OE | UART_INT_BE | UART_INT_PE | UART_INT_FE));
-    //UARTIntEnable(SENS_ITF_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_TX);
-    UARTIntEnable(SENS_ITF_UART_BASE, UART_INT_RX);
+    //UARTIntEnable(OSENS_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_TX);
+    UARTIntEnable(OSENS_UART_BASE, UART_INT_RX);
 
 }
 
 void uart1_disableInterrupts(){
-    UARTIntDisable(SENS_ITF_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_TX);
+    UARTIntDisable(OSENS_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_TX);
 }
 
 void uart1_clearRxInterrupts(){
-    UARTIntClear(SENS_ITF_UART_BASE, UART_INT_RX | UART_INT_RT);
+    UARTIntClear(OSENS_UART_BASE, UART_INT_RX | UART_INT_RT);
 }
 
 void uart1_clearTxInterrupts(){
-    UARTIntClear(SENS_ITF_UART_BASE, UART_INT_TX);
+    UARTIntClear(OSENS_UART_BASE, UART_INT_TX);
 }
 
 void  uart1_writeByte(uint8_t byteToWrite){
-	UARTCharPut(SENS_ITF_UART_BASE, byteToWrite);
+	UARTCharPut(OSENS_UART_BASE, byteToWrite);
 }
 
 uint8_t uart1_readByte(){
 	 int32_t i32Char;
-     i32Char = UARTCharGet(SENS_ITF_UART_BASE);
+     i32Char = UARTCharGet(OSENS_UART_BASE);
 	 return (uint8_t)(i32Char & 0xFF);
 }
 

@@ -23,7 +23,7 @@
 
 //define the SENS_ITF UART or SPI : SPI --> USE_SPI_INTERFACE = 1 or UART --> USE_SPI_INTERFACE = 0
 #define USE_SPI_INTERFACE  0
-#define SENS_ITF_UART_INT  0
+#define OSENS_UART_INT  0
 
 //=========================== define ==========================================
 

@@ -29,16 +29,16 @@
 #endif
 
 //SENS_ITF UART1 PINS
-#define SENS_ITF_UART_BASE           UART1_BASE
-#define SENS_ITF_UART_ENABLE_BM      SYS_CTRL_PERIPH_UART1
-#define SENS_ITF_UART_BUS_BASE       GPIO_A_BASE
-#define SENS_ITF_UART_RXD_BASE       BSP_UART_BUS_BASE
-#define SENS_ITF_UART_RXD            GPIO_PIN_5      //!< PA5
-#define SENS_ITF_UART_TXD_BASE       BSP_UART_BUS_BASE
-#define SENS_ITF_UART_TXD            GPIO_PIN_4      //!< PA4
-#define SENS_ITF_MUX_UART_TXD        IOC_MUX_OUT_SEL_UART1_TXD
-#define SENS_ITF_MUX_UART_RXD        IOC_UARTRXD_UART1
-#define SENS_ITF_INT_UART            INT_UART1
+#define OSENS_UART_BASE           UART1_BASE
+#define OSENS_UART_ENABLE_BM      SYS_CTRL_PERIPH_UART1
+#define OSENS_UART_BUS_BASE       GPIO_A_BASE
+#define OSENS_UART_RXD_BASE       BSP_UART_BUS_BASE
+#define OSENS_UART_RXD            GPIO_PIN_5      //!< PA5
+#define OSENS_UART_TXD_BASE       BSP_UART_BUS_BASE
+#define OSENS_UART_TXD            GPIO_PIN_4      //!< PA4
+#define OSENS_MUX_UART_TXD        IOC_MUX_OUT_SEL_UART1_TXD
+#define OSENS_MUX_UART_RXD        IOC_UARTRXD_UART1
+#define OSENS_INT_UART            INT_UART1
 //=========================== define ==========================================
 
 //=========================== typedef =========================================

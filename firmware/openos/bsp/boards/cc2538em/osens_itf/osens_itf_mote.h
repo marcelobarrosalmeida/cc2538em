@@ -1,17 +1,17 @@
 /** @file */
 
-#ifndef __SENS_ITF_MOTE_H__
-#define __SENS_ITF_MOTE_H__
+#ifndef __OSENS_MOTE_H__
+#define __OSENS_MOTE_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "sens_itf.h"
+#include "osens_itf.h"
 
-#define SENS_ITF_DBG_FRAME  0
-#define SENS_ITF_OUTPUT     1
-#define SENS_ITF_SM_TICK_MS 250
+#define OSENS_DBG_FRAME  0
+#define OSENS_OUTPUT     1
+#define OSENS_SM_TICK_MS 250
 #define DUMMY_BYTE 0x00
 
 
@@ -97,13 +97,13 @@ typedef struct
     volatile uint16_t ui16NumBytes;
 }tBuBuf;
 
-uint8_t sens_itf_mote_init(void);
+uint8_t osens_mote_init(void);
 void bspUartIsrHandler (void);
-uint8_t sens_itf_mote_send_frame(uint8_t *frame, uint8_t size);
+uint8_t osens_mote_send_frame(uint8_t *frame, uint8_t size);
 uint16_t bspUartRxCharsAvail(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __SENS_ITF_MOTE_H__ */
+#endif /* __OSENS_MOTE_H__ */

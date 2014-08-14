@@ -35,7 +35,7 @@
 //===== applications
 //+++++ TCP
 //- debug
-#include "sensors.h"
+#include "osens_app.h"
 #include "tcpecho.h"
 #include "tcpinject.h"
 #include "tcpprint.h"

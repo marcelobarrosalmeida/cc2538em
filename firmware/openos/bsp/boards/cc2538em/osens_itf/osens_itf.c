@@ -1,12 +1,13 @@
 #include <string.h>
 #include <stdint.h>
-#include "sens_itf.h"
+#include "osens.h"
+#include "osens_itf.h"
 #include "buf_io.h"
 #include "crc16.h"
 
-#define SENS_ITF_DBG_FRAME 1
+#define OSENS_DBG_FRAME 1
 
-uint8_t sens_itf_unpack_point_value(osens_point_t *point, uint8_t *buf)
+uint8_t osens_unpack_point_value(osens_point_t *point, uint8_t *buf)
 {
     uint8_t size = 0;
 
@@ -59,7 +60,7 @@ uint8_t sens_itf_unpack_point_value(osens_point_t *point, uint8_t *buf)
     return size;
 }
 
-uint8_t sens_itf_pack_point_value(const osens_point_t *point, uint8_t *buf)
+uint8_t osens_pack_point_value(const osens_point_t *point, uint8_t *buf)
 {
     uint8_t size = 0;
 
@@ -112,7 +113,7 @@ uint8_t sens_itf_pack_point_value(const osens_point_t *point, uint8_t *buf)
     return size;
 }
 
-uint8_t sens_itf_unpack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame, uint8_t frame_size)
+uint8_t osens_unpack_cmd_req(osens_cmd_req_t *cmd, uint8_t *frame, uint8_t frame_size)
 {
     uint8_t *buf = frame;
     uint16_t crc;
@@ -121,7 +122,7 @@ uint8_t sens_itf_unpack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame, uint8_t
 
     if (frame_size < 3)
     {
-        //OS_UTIL_LOG(SENS_ITF_DBG_FRAME, ("Invalid frame size %d", frame_size));
+        //OS_UTIL_LOG(OSENS_DBG_FRAME, ("Invalid frame size %d", frame_size));
         return 0;
     }
     
@@ -135,49 +136,49 @@ uint8_t sens_itf_unpack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame, uint8_t
 
     if (frame_crc != crc)
     {
-        //OS_UTIL_LOG(SENS_ITF_DBG_FRAME, ("Invalid CRC %04X <> %04X", frame_crc, crc));
+        //OS_UTIL_LOG(OSENS_DBG_FRAME, ("Invalid CRC %04X <> %04X", frame_crc, crc));
         return 0;
     }
     
     switch (cmd->hdr.addr)
     {
-    case SENS_ITF_REGMAP_BRD_CMD:
+    case OSENS_REGMAP_BRD_CMD:
         cmd->payload.command_cmd.cmd = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_WRITE_BAT_STATUS:
+    case OSENS_REGMAP_WRITE_BAT_STATUS:
         cmd->payload.bat_status_cmd.status = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_WRITE_BAT_CHARGE:
+    case OSENS_REGMAP_WRITE_BAT_CHARGE:
         cmd->payload.bat_charge_cmd.charge = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_DSP_WRITE:
+    case OSENS_REGMAP_DSP_WRITE:
         cmd->payload.write_display_cmd.line = buf_io_get8_fl_ap(buf);
-        memcpy(cmd->payload.write_display_cmd.msg,buf,SENS_ITF_DSP_MSG_MAX_SIZE);
-        buf += SENS_ITF_DSP_MSG_MAX_SIZE;
+        memcpy(cmd->payload.write_display_cmd.msg,buf,OSENS_DSP_MSG_MAX_SIZE);
+        buf += OSENS_DSP_MSG_MAX_SIZE;
         break;
-    case SENS_ITF_REGMAP_WPAN_STATUS:
+    case OSENS_REGMAP_WPAN_STATUS:
         cmd->payload.wpan_status_cmd.status = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_WPAN_STRENGTH:
+    case OSENS_REGMAP_WPAN_STRENGTH:
         cmd->payload.wpan_strength_cmd.strenght = buf_io_get8_fl_ap(buf);
         break;
     default:
         break;
     }
 
-    if ((cmd->hdr.addr >= SENS_ITF_REGMAP_WRITE_POINT_DATA_1) && 
-        (cmd->hdr.addr <= SENS_ITF_REGMAP_WRITE_POINT_DATA_32))
+    if ((cmd->hdr.addr >= OSENS_REGMAP_WRITE_POINT_DATA_1) && 
+        (cmd->hdr.addr <= OSENS_REGMAP_WRITE_POINT_DATA_32))
     {
-        //uint8_t point = cmd->hdr.addr - SENS_ITF_REGMAP_WRITE_POINT_DATA_1;
+        //uint8_t point = cmd->hdr.addr - OSENS_REGMAP_WRITE_POINT_DATA_1;
         cmd->payload.point_value_cmd.type =  buf_io_get8_fl_ap(buf);
-        buf += sens_itf_unpack_point_value(&cmd->payload.point_value_cmd, buf);
+        buf += osens_unpack_point_value(&cmd->payload.point_value_cmd, buf);
     }
 
     size = cmd->hdr.size + 2; // + crc 
     return size;
 }
 
-uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
+uint8_t osens_pack_cmd_res(osens_cmd_res_t *cmd, uint8_t *frame)
 {
     uint8_t *buf = &frame[1];
     uint8_t size = 0;
@@ -187,14 +188,14 @@ uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
     buf_io_put8_tl_ap(cmd->hdr.status, buf);
 
     // only fill command when status is OK, otherwise an error will be reported
-    if (cmd->hdr.status == SENS_ITF_ANS_OK)
+    if (cmd->hdr.status == OSENS_ANS_OK)
     {
         switch (cmd->hdr.addr)
         {
-        case SENS_ITF_REGMAP_ITF_VERSION:
+        case OSENS_REGMAP_ITF_VERSION:
             buf_io_put8_tl_ap(cmd->payload.itf_version_cmd.version, buf);
             break;
-        case SENS_ITF_REGMAP_BRD_ID:
+        case OSENS_REGMAP_BRD_ID:
             memcpy(buf, cmd->payload.brd_id_cmd.model, OSENS_MODEL_NAME_SIZE);
             buf += OSENS_MODEL_NAME_SIZE;
             memcpy(buf, cmd->payload.brd_id_cmd.manufactor, OSENS_MANUF_NAME_SIZE);
@@ -204,31 +205,31 @@ uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
             buf_io_put8_tl_ap(cmd->payload.brd_id_cmd.num_of_points, buf);
             buf_io_put8_tl_ap(cmd->payload.brd_id_cmd.cabalities, buf);
             break;
-        case SENS_ITF_REGMAP_BRD_STATUS:
+        case OSENS_REGMAP_BRD_STATUS:
             buf_io_put8_tl_ap(cmd->payload.brd_status_cmd.status, buf);
             break;
-        case SENS_ITF_REGMAP_BRD_CMD:
+        case OSENS_REGMAP_BRD_CMD:
             buf_io_put8_tl_ap(cmd->payload.command_res_cmd.status, buf);
             break;
-        case SENS_ITF_REGMAP_READ_BAT_STATUS:
+        case OSENS_REGMAP_READ_BAT_STATUS:
             buf_io_put8_tl_ap(cmd->payload.bat_status_cmd.status, buf);
             break;
-        case SENS_ITF_REGMAP_READ_BAT_CHARGE:
+        case OSENS_REGMAP_READ_BAT_CHARGE:
             buf_io_put8_tl_ap(cmd->payload.bat_charge_cmd.charge, buf);
             break;
-        case SENS_ITF_REGMAP_SVR_MAIN_ADDR:
-        case SENS_ITF_REGMAP_SVR_SEC_ADDR:
-            memcpy(buf, cmd->payload.svr_addr_cmd.addr, SENS_ITF_SERVER_ADDR_SIZE);
-            buf += SENS_ITF_SERVER_ADDR_SIZE;
+        case OSENS_REGMAP_SVR_MAIN_ADDR:
+        case OSENS_REGMAP_SVR_SEC_ADDR:
+            memcpy(buf, cmd->payload.svr_addr_cmd.addr, OSENS_SERVER_ADDR_SIZE);
+            buf += OSENS_SERVER_ADDR_SIZE;
             break;
         default:
             break;
         }
 
-        if ((cmd->hdr.addr >= SENS_ITF_REGMAP_POINT_DESC_1) &&
-            (cmd->hdr.addr <= SENS_ITF_REGMAP_POINT_DESC_32))
+        if ((cmd->hdr.addr >= OSENS_REGMAP_POINT_DESC_1) &&
+            (cmd->hdr.addr <= OSENS_REGMAP_POINT_DESC_32))
         {
-            //uint8_t point = cmd->hdr.addr - SENS_ITF_REGMAP_POINT_DESC_1;
+            //uint8_t point = cmd->hdr.addr - OSENS_REGMAP_POINT_DESC_1;
             memcpy(buf, cmd->payload.point_desc_cmd.name, OSENS_POINT_NAME_SIZE);
             buf += OSENS_POINT_NAME_SIZE;
             buf_io_put8_tl_ap(cmd->payload.point_desc_cmd.type, buf);
@@ -237,12 +238,12 @@ uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
             buf_io_put32_tl_ap(cmd->payload.point_desc_cmd.sampling_time_x250ms, buf);
         }
 
-        if ((cmd->hdr.addr >= SENS_ITF_REGMAP_READ_POINT_DATA_1) &&
-            (cmd->hdr.addr <= SENS_ITF_REGMAP_READ_POINT_DATA_32))
+        if ((cmd->hdr.addr >= OSENS_REGMAP_READ_POINT_DATA_1) &&
+            (cmd->hdr.addr <= OSENS_REGMAP_READ_POINT_DATA_32))
         {
-            //uint8_t point = cmd->hdr.addr - SENS_ITF_REGMAP_READ_POINT_DATA_1;
+            //uint8_t point = cmd->hdr.addr - OSENS_REGMAP_READ_POINT_DATA_1;
             buf_io_put8_tl_ap(cmd->payload.point_value_cmd.type,buf);
-            buf += sens_itf_pack_point_value(&cmd->payload.point_value_cmd, buf);
+            buf += osens_pack_point_value(&cmd->payload.point_value_cmd, buf);
         }
     }
 
@@ -258,7 +259,7 @@ uint8_t sens_itf_pack_cmd_res(sens_itf_cmd_res_t *cmd, uint8_t *frame)
 }
 
 
-uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_t frame_size)
+uint8_t osens_unpack_cmd_res(osens_cmd_res_t * cmd, uint8_t *frame, uint8_t frame_size)
 {
     uint8_t size;
     uint8_t *buf = frame;
@@ -267,7 +268,7 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
 
     if (frame_size < 3)
     {
-        cmd->hdr.status = SENS_ITF_ANS_ERROR;
+        cmd->hdr.status = OSENS_ANS_ERROR;
         return 0;
     }
     
@@ -283,24 +284,24 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
 
     if (frame_crc != crc)
     {
-        //OS_UTIL_LOG(SENS_ITF_DBG_FRAME, ("Invalid CRC %04X <> %04X", frame_crc, crc));
-        cmd->hdr.status = SENS_ITF_ANS_CRC_ERROR;
+        //OS_UTIL_LOG(OSENS_DBG_FRAME, ("Invalid CRC %04X <> %04X", frame_crc, crc));
+        cmd->hdr.status = OSENS_ANS_CRC_ERROR;
         return 0;
     }
 
-    if (cmd->hdr.status != SENS_ITF_ANS_OK)
+    if (cmd->hdr.status != OSENS_ANS_OK)
     {
-        //OS_UTIL_LOG(SENS_ITF_DBG_FRAME, ("Response error %d", cmd->hdr.status));
+        //OS_UTIL_LOG(OSENS_DBG_FRAME, ("Response error %d", cmd->hdr.status));
         return 0;
     }
 
 
     switch (cmd->hdr.addr)
     {
-    case SENS_ITF_REGMAP_ITF_VERSION:
+    case OSENS_REGMAP_ITF_VERSION:
         cmd->payload.itf_version_cmd.version = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_BRD_ID:
+    case OSENS_REGMAP_BRD_ID:
         memcpy(cmd->payload.brd_id_cmd.model, buf, OSENS_MODEL_NAME_SIZE);
         buf += OSENS_MODEL_NAME_SIZE;
         memcpy(cmd->payload.brd_id_cmd.manufactor, buf, OSENS_MANUF_NAME_SIZE);
@@ -310,29 +311,29 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
         cmd->payload.brd_id_cmd.num_of_points = buf_io_get8_fl_ap(buf);
         cmd->payload.brd_id_cmd.cabalities = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_BRD_STATUS:
+    case OSENS_REGMAP_BRD_STATUS:
         cmd->payload.brd_status_cmd.status = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_BRD_CMD:
+    case OSENS_REGMAP_BRD_CMD:
         cmd->payload.command_res_cmd.status = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_READ_BAT_STATUS:
+    case OSENS_REGMAP_READ_BAT_STATUS:
         cmd->payload.bat_status_cmd.status = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_READ_BAT_CHARGE:
+    case OSENS_REGMAP_READ_BAT_CHARGE:
         cmd->payload.bat_charge_cmd.charge = buf_io_get8_fl_ap(buf);
         break;
-    case SENS_ITF_REGMAP_SVR_MAIN_ADDR:
-    case SENS_ITF_REGMAP_SVR_SEC_ADDR:
-        memcpy(cmd->payload.svr_addr_cmd.addr, buf, SENS_ITF_SERVER_ADDR_SIZE);
-        buf += SENS_ITF_SERVER_ADDR_SIZE;
+    case OSENS_REGMAP_SVR_MAIN_ADDR:
+    case OSENS_REGMAP_SVR_SEC_ADDR:
+        memcpy(cmd->payload.svr_addr_cmd.addr, buf, OSENS_SERVER_ADDR_SIZE);
+        buf += OSENS_SERVER_ADDR_SIZE;
         break;
     default:
         break;
     }
 
-    if ((cmd->hdr.addr >= SENS_ITF_REGMAP_POINT_DESC_1) && 
-        (cmd->hdr.addr <= SENS_ITF_REGMAP_POINT_DESC_32))
+    if ((cmd->hdr.addr >= OSENS_REGMAP_POINT_DESC_1) && 
+        (cmd->hdr.addr <= OSENS_REGMAP_POINT_DESC_32))
     {
         memcpy(cmd->payload.point_desc_cmd.name, buf, OSENS_POINT_NAME_SIZE);
         buf += OSENS_POINT_NAME_SIZE;
@@ -342,18 +343,18 @@ uint8_t sens_itf_unpack_cmd_res(sens_itf_cmd_res_t * cmd, uint8_t *frame, uint8_
         cmd->payload.point_desc_cmd.sampling_time_x250ms = buf_io_get32_fl_ap(buf);
     }
 
-    if ((cmd->hdr.addr >= SENS_ITF_REGMAP_READ_POINT_DATA_1) &&
-        (cmd->hdr.addr <= SENS_ITF_REGMAP_READ_POINT_DATA_32))
+    if ((cmd->hdr.addr >= OSENS_REGMAP_READ_POINT_DATA_1) &&
+        (cmd->hdr.addr <= OSENS_REGMAP_READ_POINT_DATA_32))
     {
         cmd->payload.point_value_cmd.type = buf_io_get8_fl_ap(buf);
-        buf += sens_itf_unpack_point_value(&cmd->payload.point_value_cmd, buf);
+        buf += osens_unpack_point_value(&cmd->payload.point_value_cmd, buf);
     }
 
     size = cmd->hdr.size + 2; // crc 
     return size;
 }
 
-uint8_t sens_itf_pack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame)
+uint8_t osens_pack_cmd_req(osens_cmd_req_t *cmd, uint8_t *frame)
 {
     uint8_t *buf = &frame[1];
     uint8_t size = 0;
@@ -365,35 +366,35 @@ uint8_t sens_itf_pack_cmd_req(sens_itf_cmd_req_t *cmd, uint8_t *frame)
     
     switch (cmd->hdr.addr)
     {
-    case SENS_ITF_REGMAP_BRD_CMD:
+    case OSENS_REGMAP_BRD_CMD:
         buf_io_put8_tl_ap(cmd->payload.command_cmd.cmd, buf);
         break;
-    case SENS_ITF_REGMAP_WRITE_BAT_STATUS:
+    case OSENS_REGMAP_WRITE_BAT_STATUS:
         buf_io_put8_tl_ap(cmd->payload.bat_status_cmd.status, buf);
         break;
-    case SENS_ITF_REGMAP_WRITE_BAT_CHARGE:
+    case OSENS_REGMAP_WRITE_BAT_CHARGE:
         buf_io_put8_tl_ap(cmd->payload.bat_charge_cmd.charge, buf);
         break;
-    case SENS_ITF_REGMAP_DSP_WRITE:
+    case OSENS_REGMAP_DSP_WRITE:
         buf_io_put8_tl_ap(cmd->payload.write_display_cmd.line, buf);
-        memcpy(buf, cmd->payload.write_display_cmd.msg, SENS_ITF_DSP_MSG_MAX_SIZE);
-        buf += SENS_ITF_DSP_MSG_MAX_SIZE;
+        memcpy(buf, cmd->payload.write_display_cmd.msg, OSENS_DSP_MSG_MAX_SIZE);
+        buf += OSENS_DSP_MSG_MAX_SIZE;
         break;
-    case SENS_ITF_REGMAP_WPAN_STATUS:
+    case OSENS_REGMAP_WPAN_STATUS:
         buf_io_put8_tl_ap(cmd->payload.wpan_status_cmd.status,buf);
         break;
-    case SENS_ITF_REGMAP_WPAN_STRENGTH:
+    case OSENS_REGMAP_WPAN_STRENGTH:
         buf_io_put8_tl_ap(cmd->payload.wpan_strength_cmd.strenght,buf);
         break;
     default:
         break;
     }
 
-    if ((cmd->hdr.addr >= SENS_ITF_REGMAP_WRITE_POINT_DATA_1) && 
-        (cmd->hdr.addr <= SENS_ITF_REGMAP_WRITE_POINT_DATA_32))
+    if ((cmd->hdr.addr >= OSENS_REGMAP_WRITE_POINT_DATA_1) && 
+        (cmd->hdr.addr <= OSENS_REGMAP_WRITE_POINT_DATA_32))
     {
         buf_io_put8_tl_ap(cmd->payload.point_value_cmd.type, buf);
-        buf += sens_itf_pack_point_value(&cmd->payload.point_value_cmd, buf);
+        buf += osens_pack_point_value(&cmd->payload.point_value_cmd, buf);
     }
 
     size = buf - frame;

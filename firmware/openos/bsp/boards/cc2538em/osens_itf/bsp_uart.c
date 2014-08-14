@@ -7,13 +7,14 @@
 #include "hw_memmap.h"
 #include "ioc.h"                // Access to driverlib ioc fns
 #include "gpio.h"               // Access to driverlib gpio fns
+#include "osens.h"
+#include "osens_itf.h"
 #include "openwsn.h"
-#include "sens_itf.h"
 #include "opentimers.h"
 #include "scheduler.h"
 #include "board.h"
 #include "sys_ctrl.h"
-#include "sens_itf_mote.h"
+#include "osens_itf_mote.h"
 #include "hw_ints.h"
 #include  "uarthal.h"
 #if USE_SPI_INTERFACE
@@ -29,11 +30,11 @@
 
 #if 0
 
-extern sens_itf_mote_sm_state_t sm_state;
+extern osens_mote_sm_state_t sm_state;
 
 
-uint8_t rx_frame[SENS_ITF_MAX_FRAME_SIZE];
-uint8_t tx_frame[SENS_ITF_MAX_FRAME_SIZE];
+uint8_t rx_frame[OSENS_MAX_FRAME_SIZE];
+uint8_t tx_frame[OSENS_MAX_FRAME_SIZE];
 static tBuBuf sBuBufRx;
 static tBuBuf sBuBufTx;
 static void buBufFlush(tBuBuf *psBuf);
@@ -79,7 +80,7 @@ buBufPopByte(void)
     //
     // Send byte to TX FIFO (wait for space to become available)
     //
-    UARTCharPut(BSP_SENS_ITF_BASE, (*sBuBufTx.pui8Tail++));
+    UARTCharPut(BSP_OSENS_BASE, (*sBuBufTx.pui8Tail++));
 
     //
     // Update byte count
@@ -332,7 +333,7 @@ void ssi_isr_private(void)
 			 = value;
 
 		num_rx_bytes++;
-		if (num_rx_bytes >= SENS_ITF_MAX_FRAME_SIZE)
+		if (num_rx_bytes >= OSENS_MAX_FRAME_SIZE)
 			num_rx_bytes = 0;
 	}
 
@@ -342,17 +343,17 @@ void ssi_isr_private(void)
 
 	    SSIDataGetNonBlocking(BSP_SPI_SSI_BASE, &u32Value);
 
-		if (num_rx_bytes < SENS_ITF_MAX_FRAME_SIZE)
+		if (num_rx_bytes < OSENS_MAX_FRAME_SIZE)
 			rx_frame[num_rx_bytes] = value;
 
 		num_rx_bytes++;
-		if (num_rx_bytes >= SENS_ITF_MAX_FRAME_SIZE)
+		if (num_rx_bytes >= OSENS_MAX_FRAME_SIZE)
 			num_rx_bytes = 0;
 	}
 
 }
 
-static uint8_t sens_itf_mote_send_frame(uint8_t *frame, uint8_t size)
+static uint8_t osens_mote_send_frame(uint8_t *frame, uint8_t size)
 {
     int8_t sent=size;
 	uint32_t ui32Data;
@@ -380,7 +381,7 @@ static uint8_t sens_itf_mote_send_frame(uint8_t *frame, uint8_t size)
 /*-------------------------------------
  * Rotina para Ler um frame na SPI
  */
-static uint8_t receive_spi(sens_itf_mote_sm_state_t *st, uint8_t size)
+static uint8_t receive_spi(osens_mote_sm_state_t *st, uint8_t size)
 {
 	uint8_t NumByteToRead = size;
 	uint32_t ui32Data=0;
@@ -401,13 +402,13 @@ static uint8_t receive_spi(sens_itf_mote_sm_state_t *st, uint8_t size)
 		SSIDataPut(BSP_SPI_SSI_BASE, DUMMY_BYTE);
 		SSIDataGet(BSP_SPI_SSI_BASE, &ui32Data);
 
-	    //if (count < SENS_ITF_MAX_FRAME_SIZE)
+	    //if (count < OSENS_MAX_FRAME_SIZE)
 		if (count < 10)
 	    	buf[count] = (uint8_t) (ui32Data & 0xFF);
 
 	    count++;
 
-	    //if (count >= SENS_ITF_MAX_FRAME_SIZE)
+	    //if (count >= OSENS_MAX_FRAME_SIZE)
 	    //	count = 0;
 
 		NumByteToRead--;
@@ -418,7 +419,7 @@ static uint8_t receive_spi(sens_itf_mote_sm_state_t *st, uint8_t size)
 	return size;
 }
 
-static uint8_t sens_itf_mote_send_frame(uint8_t *frame, uint8_t size)
+static uint8_t osens_mote_send_frame(uint8_t *frame, uint8_t size)
 {
     int8_t sent=size;
 	uint32_t ui32Data;
