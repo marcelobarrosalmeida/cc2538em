@@ -24,6 +24,7 @@ source   = \
     Glob('osens_itf/*.c') + \
     [rf231]
 
+localEnv.Append(CPPPATH = [os.path.join('#','firmware','openos','bsp','boards','cc2538em','osens_itf')])
 libbsp = localEnv.Library(
     target=target,
     source=source,

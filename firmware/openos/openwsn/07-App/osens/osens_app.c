@@ -4,7 +4,6 @@
 #include "opencoap.h"
 #include "openqueue.h"
 #include "osens.h"
-#include "osens_itf.h"
 #include "packetfunctions.h"
 #include "opentimers.h"
 #include "scheduler.h"

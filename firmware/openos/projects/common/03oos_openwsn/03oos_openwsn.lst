@@ -90,19 +90,19 @@
   76              		.cfi_endproc
   77              	.LFE0:
   79              	.Letext0:
-  80              		.file 2 "firmware\\openos\\bsp\\boards\\cc2538/board_info.h"
+  80              		.file 2 "firmware\\openos\\bsp\\boards\\cc2538em/board_info.h"
   81              		.file 3 "firmware\\openos\\openwsn/openwsn.h"
   82              		.file 4 "d:\\apps\\gnu_arm_toolchain\\4.8_2013q4\\arm-none-eabi\\include\\stdint.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 03oos_openwsn.c
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:19     .rodata:00000000 $d
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:22     .rodata:00000000 rreg_uriquery
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:27     .rodata:00000008 infoBoardname
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:32     .rodata:00000010 infouCName
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:37     .rodata:00000018 infoRadioName
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:42     .rodata:00000024 infoStackName
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:45     .text:00000000 $t
-C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:50     .text:00000000 mote_main
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:19     .rodata:00000000 $d
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:22     .rodata:00000000 rreg_uriquery
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:27     .rodata:00000008 infoBoardname
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:32     .rodata:00000010 infouCName
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:37     .rodata:00000018 infoRadioName
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:42     .rodata:00000024 infoStackName
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:45     .text:00000000 $t
+C:\Users\marcelo\AppData\Local\Temp\ccBWYf9i.s:50     .text:00000000 mote_main
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.b00750016eebb15aee2d53e92d92751c
                            .group:00000000 wm4.newlib.h.8.384a112feabb3bef7b573ae48cde2e3b
@@ -123,9 +123,10 @@ C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:50     .text:00000000 mote_main
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
                            .group:00000000 wm4.hw_types.h.67.b10589a0806dcc2d274d6fab6b736519
                            .group:00000000 wm4.interrupt.h.41.272fc4ec0e276feb439e7974d0f77eaf
-                           .group:00000000 wm4.board_info.h.19.d9b72717d3b8675491c098d10dc785ca
-                           .group:00000000 wm4.board.h.30.77846cc438bf985b310dd20e750a4e19
-                           .group:00000000 wm4.openwsn.h.9.f44445244546ed0eb1bc02ec4dcf773b
+                           .group:00000000 wm4.board_info.h.21.b8ffa8fd873765d5104a21388356a9c1
+                           .group:00000000 wm4.toolchain_defs.h.2.59a5259f74cb714abc17e042354ff20f
+                           .group:00000000 wm4.board.h.25.b2cf3a023d6565946c66c4eb629fe75e
+                           .group:00000000 wm4.openwsn.h.19.f0bdcf9d5a7f761fbb617e304a3d92fe
 
 UNDEFINED SYMBOLS
 board_init

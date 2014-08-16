@@ -364,11 +364,11 @@ void openserial_startOutput() {
 }
 
 void openserial_stop() {
+
+#if ENABLE_UART0_DAG
    uint8_t inputBufFill;
    uint8_t cmdByte;
    bool busyReceiving;
-
-#if ENABLE_UART0_DAG
 
    INTERRUPT_DECLARATION();
    
