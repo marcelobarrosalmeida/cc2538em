@@ -4,7 +4,7 @@ DO NOT EDIT DIRECTLY!!
 This file was 'objectified' by SCons as a pre-processing
 step for the building a Python extension module.
 
-This was done on 2014-07-07 12:51:56.866000.
+This was done on 2014-07-16 00:10:59.290000.
 */
 /**
 \brief Source code of the Python openwsn module, written in C.
@@ -14,7 +14,8 @@ This was done on 2014-07-07 12:51:56.866000.
 
 #include <stdio.h>
 #include "openwsnmodule_obj.h"
-
+#include "bsp_timer_obj.h"
+#include "radio_obj.h"
 //=========================== OpenMote Class ==================================
 
 //===== members

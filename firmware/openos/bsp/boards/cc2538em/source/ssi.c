@@ -771,7 +771,6 @@ SSIClockSourceGet(uint32_t ui32Base)
     return(HWREG(ui32Base + SSI_O_CC));
 }
 
-
 //*****************************************************************************
 //
 // Close the Doxygen group.

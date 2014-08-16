@@ -16,7 +16,6 @@ to return the board's description.
 
 //=========================== defines =========================================
 
-
 #define MY_ID 0x00
 
 //===== interrupt state
@@ -29,10 +28,10 @@ to return the board's description.
    #define ENABLE_INTERRUPTS()              __asm__("bis %0,r2" : : "ir" ((uint16_t) s));
 #else
    // other
-#define INTERRUPT_DECLARATION() __istate_t s;
-#define DISABLE_INTERRUPTS()    s = __get_interrupt_state(); \
-                                __disable_interrupt();
-#define ENABLE_INTERRUPTS()     __set_interrupt_state(s);
+   #define INTERRUPT_DECLARATION()          __istate_t s;
+   #define DISABLE_INTERRUPTS()             s = __get_interrupt_state(); \
+                                            __disable_interrupt();
+   #define ENABLE_INTERRUPTS()              __set_interrupt_state(s);
 #endif
 
 //===== timer

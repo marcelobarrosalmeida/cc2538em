@@ -14,13 +14,10 @@ typedef struct {
 	uart_rx_cbt rxCb;
 } uart_vars_t;
 
-
 uart_vars_t uart_vars;
-
 
 void private_uart_init (UART_MemMapPtr uartch, int sysclk, int baud);
 extern void uart_isr(void);
-
 
 extern core_clk_khz;
 extern mcg_clk_hz;

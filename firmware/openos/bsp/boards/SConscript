@@ -14,7 +14,6 @@ sources_h = [
     'radio.h',
     'radiotimer.h',
     'uart.h',
-    'toolchain_defs.h'
 ]
 
 #============================ SCons targets ===================================

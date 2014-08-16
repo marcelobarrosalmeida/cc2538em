@@ -1,0 +1,134 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"03oos_openwsn.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.rodata
+  19              		.align	2
+  22              	rreg_uriquery:
+  23 0000 683D7563 		.ascii	"h=ucb\000"
+  23      6200
+  24 0006 0000     		.align	2
+  27              	infoBoardname:
+  28 0008 43433235 		.ascii	"CC2538\000"
+  28      333800
+  29 000f 00       		.align	2
+  32              	infouCName:
+  33 0010 43433235 		.ascii	"CC2538\000"
+  33      333800
+  34 0017 00       		.align	2
+  37              	infoRadioName:
+  38 0018 43433235 		.ascii	"CC2538 SoC\000"
+  38      33382053 
+  38      6F4300
+  39 0023 00       		.align	2
+  42              	infoStackName:
+  43 0024 4F70656E 		.ascii	"OpenWSN \000"
+  43      57534E20 
+  43      00
+  44 002d 000000   		.text
+  45              		.align	2
+  46              		.global	mote_main
+  47              		.thumb
+  48              		.thumb_func
+  50              	mote_main:
+  51              	.LFB0:
+  52              		.file 1 "firmware\\openos\\projects\\common\\03oos_openwsn\\03oos_openwsn.c"
+   1:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** /**
+   2:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** \brief This project runs the full OpenWSN stack.
+   3:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** 
+   4:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** \author Thomas Watteyne <watteyne@eecs.berkeley.edu>, August 2010
+   5:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** */
+   6:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** 
+   7:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** #include "board.h"
+   8:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** #include "scheduler.h"
+   9:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** #include "openwsn.h"
+  10:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** 
+  11:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** 
+  12:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** int mote_main(void) {
+  53              		.loc 1 12 0
+  54              		.cfi_startproc
+  55              		@ args = 0, pretend = 0, frame = 0
+  56              		@ frame_needed = 1, uses_anonymous_args = 0
+  57 0000 80B5     		push	{r7, lr}
+  58              		.cfi_def_cfa_offset 8
+  59              		.cfi_offset 7, -8
+  60              		.cfi_offset 14, -4
+  61 0002 00AF     		add	r7, sp, #0
+  62              		.cfi_def_cfa_register 7
+  13:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c ****    board_init();
+  63              		.loc 1 13 0
+  64 0004 FFF7FEFF 		bl	board_init
+  14:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c ****    scheduler_init();
+  65              		.loc 1 14 0
+  66 0008 FFF7FEFF 		bl	scheduler_init
+  15:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c ****    openwsn_init();
+  67              		.loc 1 15 0
+  68 000c FFF7FEFF 		bl	openwsn_init
+  16:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c ****    scheduler_start();
+  69              		.loc 1 16 0
+  70 0010 FFF7FEFF 		bl	scheduler_start
+  17:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c ****    return 0; // this line should never be reached
+  71              		.loc 1 17 0
+  72 0014 0023     		movs	r3, #0
+  18:firmware\openos\projects\common\03oos_openwsn/03oos_openwsn.c **** }
+  73              		.loc 1 18 0
+  74 0016 1846     		mov	r0, r3
+  75 0018 80BD     		pop	{r7, pc}
+  76              		.cfi_endproc
+  77              	.LFE0:
+  79              	.Letext0:
+  80              		.file 2 "firmware\\openos\\bsp\\boards\\cc2538/board_info.h"
+  81              		.file 3 "firmware\\openos\\openwsn/openwsn.h"
+  82              		.file 4 "d:\\apps\\gnu_arm_toolchain\\4.8_2013q4\\arm-none-eabi\\include\\stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 03oos_openwsn.c
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:19     .rodata:00000000 $d
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:22     .rodata:00000000 rreg_uriquery
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:27     .rodata:00000008 infoBoardname
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:32     .rodata:00000010 infouCName
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:37     .rodata:00000018 infoRadioName
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:42     .rodata:00000024 infoStackName
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:45     .text:00000000 $t
+C:\Users\marcelo\AppData\Local\Temp\ccoOgA0h.s:50     .text:00000000 mote_main
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.b00750016eebb15aee2d53e92d92751c
+                           .group:00000000 wm4.newlib.h.8.384a112feabb3bef7b573ae48cde2e3b
+                           .group:00000000 wm4.features.h.22.6a4ca7cd053637cc1d0db6c16f39b2d7
+                           .group:00000000 wm4.config.h.212.4163ef2871a828c674038d036b081cfd
+                           .group:00000000 wm4._ansi.h.23.5644b60c990a4800b02a6e654e88f93a
+                           .group:00000000 wm4.stdint.h.20.54ad762faa59e3c05491630641c8d8bf
+                           .group:00000000 wm4.stddef.h.39.daafd3d79fe2f3a84d2d73d7d4e706f8
+                           .group:00000000 wm4._default_types.h.6.5e12cd604db8ce00b62bb2f02708eaf3
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4._types.h.54.d3d34a3b7f3cc230cd159baf022b4b08
+                           .group:00000000 wm4.stddef.h.158.61317cdbfb4026324507d123a50b0fd6
+                           .group:00000000 wm4.reent.h.17.8bd9e4098e0428508c282cad794fae43
+                           .group:00000000 wm4.cdefs.h.56.f411b57d64a46a132cc788f4ff08e67a
+                           .group:00000000 wm4.string.h.15.dab3980bf35408a4c507182805e2de3a
+                           .group:00000000 wm4.stddef.h.158.a7efb00f6cbc6f43213b50e183c9830c
+                           .group:00000000 wm4.string.h.126.6ff3aa59129e7f66b2c273baf353e066
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.hw_types.h.67.b10589a0806dcc2d274d6fab6b736519
+                           .group:00000000 wm4.interrupt.h.41.272fc4ec0e276feb439e7974d0f77eaf
+                           .group:00000000 wm4.board_info.h.19.d9b72717d3b8675491c098d10dc785ca
+                           .group:00000000 wm4.board.h.30.77846cc438bf985b310dd20e750a4e19
+                           .group:00000000 wm4.openwsn.h.9.f44445244546ed0eb1bc02ec4dcf773b
+
+UNDEFINED SYMBOLS
+board_init
+scheduler_init
+openwsn_init
+scheduler_start

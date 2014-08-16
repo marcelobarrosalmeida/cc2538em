@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void osors_app_init(void);
+void sensors_init(void);
 
 #ifdef __cplusplus
 }

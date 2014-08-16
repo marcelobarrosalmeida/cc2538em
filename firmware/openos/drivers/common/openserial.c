@@ -8,7 +8,7 @@
 #include "openserial.h"
 #include "IEEE802154E.h"
 #include "neighbors.h"
-#include "res.h"
+#include "sixtop.h"
 #include "icmpv6echo.h"
 #include "idmanager.h"
 #include "openqueue.h"
@@ -273,7 +273,6 @@ void openserial_startInput() {
 #else
    uart_writeByte(openserial_vars.reqFrame[openserial_vars.reqFrameIdx]);
 #endif
-
    ENABLE_INTERRUPTS();
 #endif //ENABLE_UART0_DAG
 }
@@ -330,6 +329,10 @@ void openserial_startOutput() {
          if (debugPrint_neighbors()==TRUE) {
             break;
          }
+      case STATUS_KAPERIOD:
+         if (debugPrint_kaPeriod()==TRUE) {
+            break;
+         }
       default:
          DISABLE_INTERRUPTS();
          openserial_vars.debugPrintCounter=0;
@@ -341,7 +344,6 @@ void openserial_startOutput() {
    uart_clearTxInterrupts();
    uart_clearRxInterrupts();          // clear possible pending interrupts
    uart_enableInterrupts();           // Enable USCI_A1 TX & RX interrupt
-
    DISABLE_INTERRUPTS();
    openserial_vars.mode=MODE_OUTPUT;
    if (openserial_vars.outputBufFilled) {
@@ -357,7 +359,6 @@ void openserial_startOutput() {
    } else {
       openserial_stop();
    }
-
    ENABLE_INTERRUPTS();
 #endif //ENABLE_UART0_DAG
 }

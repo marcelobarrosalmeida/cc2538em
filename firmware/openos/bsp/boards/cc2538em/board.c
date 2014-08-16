@@ -310,7 +310,3 @@ void SysCtrlWakeupSetting(void)
   /* SM Timer can wake up the processor */
   GPIOIntWakeupEnable(GPIO_IWE_SM_TIMER);
 }
-
-
-
-
