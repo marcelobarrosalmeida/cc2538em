@@ -89,6 +89,7 @@ uint8_t osens_init(void);
 uint8_t osens_get_brd_desc(osens_brd_id_t *brd);
 uint8_t osens_get_num_points(void);
 uint8_t osens_get_point_desc(uint8_t index, osens_point_desc_t *desc);
+int8_t osens_get_point_type(uint8_t index);
 uint8_t osens_get_point(uint8_t index, osens_point_t *point);
 uint8_t osens_set_point_value(uint8_t index, osens_point_t *point);
 

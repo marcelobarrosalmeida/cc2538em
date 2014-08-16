@@ -480,6 +480,7 @@ const osens_mote_sm_table_t osens_mote_sm_table[] =
 uint8_t osens_init(void)
 {
 	osens_mote_init();
+	return 0;
 }
 
 uint8_t osens_get_num_points(void)
@@ -512,6 +513,16 @@ uint8_t osens_get_point_desc(uint8_t index, osens_point_desc_t *desc)
 	}
 	else
 		return 0;
+}
+
+int8_t osens_get_point_type(uint8_t index)
+{
+	if((sm_state.state >= OSENS_STATE_RUN_SCH) && (index < sensor_points.num_of_points))
+	{
+		return sensor_points.points[index].value.type;
+	}
+	else
+		return -1;
 }
 
 uint8_t osens_get_point(uint8_t index, osens_point_t *point)

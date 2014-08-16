@@ -24,6 +24,46 @@ coap_resource_desc_t osens_val_vars;
 static uint8_t digits[] = "0123456789";
 //static char *data_types[10] = { "u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f", "d" };
 
+static double decode_number(uint8_t *buffer, uint8_t len)
+{
+	uint8_t *pbuf = buffer;
+	uint8_t *pbuf_end = buffer+len;
+	uint8_t neg = 0;
+	uint8_t frac = 0;
+	double div = 10.0;
+	double number;
+
+	if(*pbuf == '-')
+	{
+		neg = 1;
+		pbuf++;
+	}
+
+	while(pbuf < pbuf_end)
+	{
+		if(*pbuf == '.')
+		{
+			frac = 1;
+			pbuf++;
+			continue;
+		}
+
+		if(frac == 1)
+		{
+			number = number + (*pbuf++ - 0x30)/div;
+			div = div / 10;
+			// protect div near zero here ?
+		}
+		else
+			number = number*10 + (*pbuf++ - 0x30);
+	}
+
+	if(neg)
+		number = -1*number;
+
+	return number;
+}
+
 static uint8_t * insert_str(uint8_t *buffer, uint8_t *str, uint32_t len)
 {
 	uint8_t *pbuf = buffer;
@@ -151,6 +191,45 @@ static uint8_t * insert_point_val(uint8_t *buffer, osens_point_t *point)
     return pbuf;
 }
 
+static void set_point_val(osens_point_t *point, double value)
+{
+    switch (point->type)
+    {
+    case OSENS_DT_U8:
+    	point->value.u8 = (uint8_t) value;
+        break;
+    case OSENS_DT_U16:
+    	point->value.u16 = (uint16_t) value;
+        break;
+    case OSENS_DT_U32:
+    	point->value.u32 = (uint32_t) value;
+        break;
+    case OSENS_DT_U64:
+    	point->value.u64 = (uint64_t) value;
+        break;
+    case OSENS_DT_S8:
+    	point->value.s8 = (int8_t) value;
+        break;
+    case OSENS_DT_S16:
+    	point->value.s16 = (int16_t) value;
+        break;
+    case OSENS_DT_S32:
+    	point->value.s32 = (int32_t) value;
+        break;
+    case OSENS_DT_S64:
+    	point->value.s64 = (int64_t) value;
+        break;
+    case OSENS_DT_FLOAT:
+    	point->value.fp32 = (float) value;
+        break;
+    case OSENS_DT_DOUBLE:
+    	point->value.fp64 = (double) value;
+        break;
+    default:
+        break;
+    }
+}
+
 void sensors_init(void) {
 
     //osens_init_point_db();
@@ -238,7 +317,7 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
 				pbuf = insert_uint(pbuf,pt_desc.unit);
 				pbuf = insert_str(pbuf,(uint8_t*)",\"rights\":",10);
 				pbuf = insert_uint(pbuf,pt_desc.access_rights);
-				pbuf = insert_str(pbuf,(uint8_t*)",\"scan\":",10);
+				pbuf = insert_str(pbuf,(uint8_t*)",\"scan\":",8);
 				pbuf = insert_uint(pbuf,pt_desc.sampling_time_x250ms);
 				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
 
@@ -292,7 +371,6 @@ owerror_t osens_val_receive(
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
 
-		// /s
 		if (coap_options[1].length == 0)
 		{
 			uint8_t m;
@@ -354,10 +432,31 @@ owerror_t osens_val_receive(
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
 
-        // set the CoAP header
-        coap_header->Code = COAP_CODE_RESP_CHANGED;
+        // /s/2/-12.45 or /s/12/12.45
+		if((coap_options[1].length == 1 || coap_options[1].length == 2) &&
+				coap_options[2].length > 0)
+		{
+			uint8_t index;
+			double number;
+			osens_point_t pt;
 
-        outcome = E_SUCCESS;
+			if(coap_options[1].length == 2)
+				index = (coap_options[1].pValue[0] - 0x30) * 10 + (coap_options[1].pValue[1] - 0x30);
+			else
+				index = coap_options[1].pValue[0] - 0x30;
+
+			number = decode_number(coap_options[2].pValue,coap_options[2].length);
+			pt.type = osens_get_point_type(index);
+
+			if(pt.type >= 0)
+			{
+				set_point_val(&pt,number);
+				osens_set_point_value(index,&pt);
+				// set the CoAP header
+				coap_header->Code = COAP_CODE_RESP_CHANGED;
+				outcome = E_SUCCESS;
+			}
+		}
         break;
 
     default:
