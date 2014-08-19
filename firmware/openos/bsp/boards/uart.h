@@ -20,9 +20,9 @@
  * ponto como dagroot (arquivo openserial flag rffflag)
  * Neste caso a UART1 nao esta disponivel
  */
-#ifdef SINK
+#if SINK == 1
 #define ENABLE_UART0_DAG   1 //TESTE RFF
-#define ENABLE_DAG_ROOT_ON_FIRST_TIME  1
+#define ENABLE_DAG_ROOT_ON_FIRST_TIME  0
 #else
 #define ENABLE_UART0_DAG   0 //TESTE RFF
 #define ENABLE_DAG_ROOT_ON_FIRST_TIME  0

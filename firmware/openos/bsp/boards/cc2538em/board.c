@@ -20,7 +20,6 @@
 #include "radiotimer.h"
 #include "debugpins.h"
 #include "uart.h"
-#include "ssi.h"
 #include "radio.h"
 #include "hw_types.h"
 #include "hw_memmap.h"
@@ -299,9 +298,6 @@ void SysCtrlRunSetting(void)
   SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_UART0);
   SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_UART1);
   SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_RFC);
-
-  /* The SSI0 peripheral must be enabled for use. */
-  SysCtrlPeripheralEnable(SYS_CTRL_PERIPH_SSI0);
 }
 
 

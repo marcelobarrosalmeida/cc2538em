@@ -4,7 +4,7 @@ DO NOT EDIT DIRECTLY!!
 This file was 'objectified' by SCons as a pre-processing
 step for the building a Python extension module.
 
-This was done on 2014-07-16 00:10:59.290000.
+This was done on 2014-08-18 21:09:52.537000.
 */
 /**
 \brief Source code of the Python openwsn module, written in C.
@@ -14,8 +14,7 @@ This was done on 2014-07-16 00:10:59.290000.
 
 #include <stdio.h>
 #include "openwsnmodule_obj.h"
-#include "bsp_timer_obj.h"
-#include "radio_obj.h"
+
 //=========================== OpenMote Class ==================================
 
 //===== members
@@ -68,7 +67,7 @@ static PyObject* OpenMote_getState(OpenMote* self) {
    PyObject* opencoap_vars;
    PyObject* tcp_vars;
    PyObject* neighbors_vars;
-   PyObject* res_vars;
+   PyObject* sixtop_vars;
    PyObject* schedule_vars;
    PyObject* schedule_dbg;
    PyObject* ieee154e_vars;
@@ -135,10 +134,10 @@ static PyObject* OpenMote_getState(OpenMote* self) {
    // TODO
    PyDict_SetItemString(returnVal, "neighbors_vars", neighbors_vars);
    
-   // res_vars
-   res_vars = PyDict_New();
+   // sixtop_vars
+   sixtop_vars = PyDict_New();
    // TODO
-   PyDict_SetItemString(returnVal, "res_vars", res_vars);
+   PyDict_SetItemString(returnVal, "sixtop_vars", sixtop_vars);
    
    // schedule_vars
    schedule_vars = PyDict_New();

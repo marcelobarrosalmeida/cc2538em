@@ -32,6 +32,11 @@ dummyFunc = Builder(
     suffix = '.ihex',
 )
 
+if   env['plugfest']==1:
+    env.Append(CPPDEFINES    = 'PLUGFEST')
+    if  env['board'] in ['cc2538','cc2538em']:
+        env.Append(CPPDEFINES    = 'NOADAPTIVESYNC')
+
 if   env['toolchain']=='mspgcc':
     
     if env['board'] not in ['telosb','wsn430v13b','wsn430v14','gina','z1']:
@@ -148,7 +153,7 @@ elif env['toolchain']=='iar':
 
 elif env['toolchain']=='iar-proj':
     
-    if env['board'] not in ['telosb','gina','wsn430v13b','wsn430v14','z1','openmotestm','agilefox']:
+    if env['board'] not in ['telosb','gina','wsn430v13b','wsn430v14','z1','openmotestm','agilefox','cc2538','cc2538em']:
         raise SystemError('toolchain {0} can not be used for board {1}'.format(env['toolchain'],env['board']))
     
     env['IAR_EW430_INSTALLDIR'] = os.environ['IAR_EW430_INSTALLDIR']
@@ -181,7 +186,7 @@ elif env['toolchain']=='armgcc':
     if env['board'] not in ['cc2538','cc2538em','iot-lab_M3']:
         raise SystemError('toolchain {0} can not be used for board {1}'.format(env['toolchain'],env['board']))
     
-    if   env['board'] in ['cc2538', 'cc2538em']:
+    if   env['board'] in ['cc2538','cc2538em']:
         
         # compiler (C)
         env.Replace(CC           = 'arm-none-eabi-gcc')

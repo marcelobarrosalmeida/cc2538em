@@ -237,8 +237,8 @@ void radio_rfOff() {
    radio_vars.state = RADIOSTATE_TURNING_OFF;
    radio_off();
    // wiggle debug pin
-   //debugpins_radio_clr();  teste rff
-   //leds_radio_off();       teste rff
+   debugpins_radio_clr();
+   leds_radio_off();
    //enable radio interrupts
    disable_radio_interrupts();
    
@@ -280,9 +280,9 @@ void radio_txEnable() {
    radio_vars.state = RADIOSTATE_ENABLING_TX;
    
    // wiggle debug pin
-   // debugpins_radio_set();  teste rff
-   // leds_radio_on();        teste rff
-
+   debugpins_radio_set();
+   leds_radio_on();
+   
    //do nothing -- radio is activated by the strobe on rx or tx
    //radio_rfOn();
    
@@ -323,9 +323,9 @@ void radio_rxEnable() {
    
    // do nothing as we do not want to receive anything yet.
    // wiggle debug pin
-   //debugpins_radio_set(); teste rff
-   //leds_radio_on();       teste rff
-
+   debugpins_radio_set();
+   leds_radio_on();
+   
    // change state
    radio_vars.state = RADIOSTATE_LISTENING;
 }

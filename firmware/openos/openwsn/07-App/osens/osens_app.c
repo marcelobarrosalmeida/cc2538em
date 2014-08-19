@@ -229,7 +229,7 @@ static void set_point_val(osens_point_t *point, double value)
     }
 }
 
-void sensors_init(void) {
+void osens_app_init(void) {
 
     //osens_init_point_db();
     //osens_mote_init();
@@ -287,10 +287,11 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
 				pbuf = insert_uint(pbuf,board_info.sensor_id);
 				pbuf = insert_str(pbuf,(uint8_t*)",\"npts\":",8);
 				pbuf = insert_uint(pbuf,board_info.num_of_points);
-				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
+				pbuf = insert_str(pbuf,(uint8_t*)"}",1);			}
+			else
+				pbuf = insert_str(pbuf,(uint8_t*)"{}",2);
 
-				outcome = E_SUCCESS;
-			}
+			outcome = E_SUCCESS;
 		} // /d/pt/1 or /d/pt/12
 		else if (coap_options[1].length == 2 &&
 				coap_options[1].pValue[0] == 'p' &&
@@ -305,7 +306,7 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
 			else
 				index = coap_options[2].pValue[0] - 0x30;
 
-			if(osens_get_point_desc(index,&pt_desc))
+			if(osens_get_pdesc(index,&pt_desc))
 			{
 
 				pbuf = insert_str(pbuf,(uint8_t*)"{\"name\":",8);
@@ -319,9 +320,11 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
 				pbuf = insert_str(pbuf,(uint8_t*)",\"scan\":",8);
 				pbuf = insert_uint(pbuf,pt_desc.sampling_time_x250ms);
 				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
-
-				outcome = E_SUCCESS;
 			}
+			else
+				pbuf = insert_str(pbuf,(uint8_t*)"{}",2);
+
+			outcome = E_SUCCESS;
 		}
 
 		if(outcome == E_SUCCESS)
@@ -410,9 +413,11 @@ owerror_t osens_val_receive(
 				pbuf = insert_str(pbuf,(uint8_t*)"{\"v\":",5);
 				pbuf = insert_point_val(pbuf,&pt);
 				pbuf = insert_str(pbuf,(uint8_t*)"}",1);
-
-				outcome = E_SUCCESS;
 			}
+			else
+				pbuf = insert_str(pbuf,(uint8_t*)"{}",2);
+
+			outcome = E_SUCCESS;
 		}
 
 		if(outcome == E_SUCCESS)
@@ -445,12 +450,12 @@ owerror_t osens_val_receive(
 				index = coap_options[1].pValue[0] - 0x30;
 
 			number = decode_number(coap_options[2].pValue,coap_options[2].length);
-			pt.type = osens_get_point_type(index);
+			pt.type = osens_get_ptype(index);
 
 			if(pt.type >= 0)
 			{
 				set_point_val(&pt,number);
-				osens_set_point_value(index,&pt);
+				osens_set_pvalue(index,&pt);
 				// set the CoAP header
 				coap_header->Code = COAP_CODE_RESP_CHANGED;
 				outcome = E_SUCCESS;

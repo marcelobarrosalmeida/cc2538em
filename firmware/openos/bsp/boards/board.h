@@ -18,7 +18,7 @@
  * Flag para escolher entre o firmware do DAG_ROOT (SINK) e o MOTE
  * Quando for o mote deve ser comentado a linha abaixo
  */
-//#define SINK  1
+#define SINK 0
 
 
 //define the SENS_ITF UART or SPI : SPI --> USE_SPI_INTERFACE = 1 or UART --> USE_SPI_INTERFACE = 0

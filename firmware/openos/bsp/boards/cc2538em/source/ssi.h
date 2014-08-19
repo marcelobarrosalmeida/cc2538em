@@ -124,7 +124,7 @@ extern void SSIDMADisable(uint32_t ui32Base, uint32_t ui32DMAFlags);
 extern bool SSIBusy(uint32_t ui32Base);
 extern void SSIClockSourceSet(uint32_t ui32Base, uint32_t ui32Source);
 extern uint32_t SSIClockSourceGet(uint32_t ui32Base);
-void spi_init(void);
+
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.
