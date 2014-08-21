@@ -266,6 +266,8 @@ static uint8_t osens_mote_sm_func_run_sch(osens_mote_sm_state_t *st)
 {
     uint8_t n;
 
+    leds_error_toggle();
+
     acquisition_schedule.scan.num_of_points = 0;
 
     for (n = 0; n < acquisition_schedule.num_of_points; n++)
@@ -509,6 +511,8 @@ static uint8_t osens_mote_sm_func_req_ver(osens_mote_sm_state_t *st)
 static uint8_t osens_mote_sm_func_init(osens_mote_sm_state_t *st)
 {
 	uint8_t ret = OSENS_STATE_EXEC_OK;
+
+	leds_error_on();
 
 	memset(&cmd, 0, sizeof(cmd));
 	memset(&ans, 0, sizeof(ans));
