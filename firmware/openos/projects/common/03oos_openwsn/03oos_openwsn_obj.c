@@ -4,7 +4,7 @@ DO NOT EDIT DIRECTLY!!
 This file was 'objectified' by SCons as a pre-processing
 step for the building a Python extension module.
 
-This was done on 2014-07-16 00:10:37.802000.
+This was done on 2014-08-25 16:30:05.734000.
 */
 /**
 \brief This project runs the full OpenWSN stack.

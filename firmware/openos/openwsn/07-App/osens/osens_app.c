@@ -367,6 +367,9 @@ owerror_t osens_val_receive(
 		if (((coap_options[1].length == 0) && (coap_options[1].type == COAP_OPTION_NUM_URIPATH)) ||
 				(coap_options[1].type != COAP_OPTION_NUM_URIPATH))
 		{
+			// WE DO NOT HAVE SPACE FOR A FULL FRAME WITH ALL PARAMETERS
+			// at ~85 bytes we have a overlow (why?)
+			/*
 			uint8_t m;
 			osens_point_t pt;
 			uint8_t num_points = osens_get_num_points();
@@ -396,10 +399,12 @@ owerror_t osens_val_receive(
 			pbuf = insert_str(pbuf,(uint8_t*)"]",1,0);
 
 			outcome = E_SUCCESS;
+			*/
 		} // /s/1 or /s/12
 		else if(((coap_options[1].length == 1 || coap_options[1].length == 2)) &&
 				(coap_options[1].type == COAP_OPTION_NUM_URIPATH))
 		{
+
 			uint8_t index;
 			osens_point_t pt;
 
@@ -418,6 +423,7 @@ owerror_t osens_val_receive(
 				pbuf = insert_str(pbuf,(uint8_t*)"{}",2,0);
 
 			outcome = E_SUCCESS;
+
 		}
 
 		if(outcome == E_SUCCESS)

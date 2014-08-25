@@ -185,14 +185,11 @@ static void osens_mote_show_values(void)
 uint8_t osens_mote_init(void)
 {
 
-#if (ENABLE_UART0_DAG == 0)
 	memset(&sm_state, 0, sizeof(osens_mote_sm_state_t));
 	sm_state.state = OSENS_STATE_INIT;
 
 	//buBufFlush();
     opentimers_start(OSENS_SM_TICK_MS, TIMER_PERIODIC, TIME_MS, (opentimers_cbt) osens_mote_tick);
-
-#endif
 
     return 0;
 }
