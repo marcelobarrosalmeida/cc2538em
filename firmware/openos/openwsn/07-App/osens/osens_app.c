@@ -126,7 +126,7 @@ static uint8_t * insert_float(uint8_t *buffer, double value)
 
 	neg = value < 0 ? 1 : 0;
 	itg = (uint64_t) value;
-	frc = (uint64_t) ((value - itg)*1000000000); // precision
+	frc = (uint64_t) ((value - itg)*100000); // precision
 
 	if(neg)
 		*pbuf++ = '-';
@@ -368,7 +368,7 @@ owerror_t osens_val_receive(
 				(coap_options[1].type != COAP_OPTION_NUM_URIPATH))
 		{
 			// WE DO NOT HAVE SPACE FOR A FULL FRAME WITH ALL PARAMETERS
-			// at ~85 bytes we have a overlow (why?)
+			// at ~80 bytes we have a overflow
 			/*
 			uint8_t m;
 			osens_point_t pt;
@@ -463,10 +463,12 @@ owerror_t osens_val_receive(
 			if(pt.type >= 0)
 			{
 				set_point_val(&pt,number);
-				osens_set_pvalue(index,&pt);
-				// set the CoAP header
-				coap_header->Code = COAP_CODE_RESP_CHANGED;
-				outcome = E_SUCCESS;
+				if(osens_set_pvalue(index,&pt))
+				{
+					// set the CoAP header
+					coap_header->Code = COAP_CODE_RESP_CHANGED;
+					outcome = E_SUCCESS;
+				}
 			}
 		}
         break;
