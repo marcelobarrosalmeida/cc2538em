@@ -1,4 +1,8 @@
 eclipse.preferences.version=1
+encoding//Debug/firmware/openos/bsp/boards/cc2538/source/subdir_rules.mk=UTF-8
+encoding//Debug/firmware/openos/bsp/boards/cc2538/source/subdir_vars.mk=UTF-8
+encoding//Debug/firmware/openos/bsp/boards/cc2538/subdir_rules.mk=UTF-8
+encoding//Debug/firmware/openos/bsp/boards/cc2538/subdir_vars.mk=UTF-8
 encoding//Debug/firmware/openos/bsp/boards/cc2538em/osens_itf/subdir_rules.mk=UTF-8
 encoding//Debug/firmware/openos/bsp/boards/cc2538em/osens_itf/subdir_vars.mk=UTF-8
 encoding//Debug/firmware/openos/bsp/boards/cc2538em/source/subdir_rules.mk=UTF-8

@@ -29,7 +29,7 @@
 
 #ifdef _MSC_VER
    // visual studio
-   #define port_INLINE  
+   #define port_INLINE  __inline
 #else
    // other
    #define port_INLINE  inline

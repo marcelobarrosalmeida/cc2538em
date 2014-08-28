@@ -20,7 +20,6 @@
 #include "uart.h"
 #include "opentimers.h"
 #include "openhdlc.h"
-#include "openserial.h"
 
 //=========================== variables =======================================
 
@@ -248,7 +247,6 @@ void openserial_startInput() {
       ENABLE_INTERRUPTS();
    }
    
-
    uart_clearTxInterrupts();
    uart_clearRxInterrupts();      // clear possible pending interrupts
    uart_enableInterrupts();       // Enable USCI_A1 TX & RX interrupt
@@ -267,7 +265,6 @@ void openserial_startInput() {
    uart_writeByte(openserial_vars.reqFrame[openserial_vars.reqFrameIdx]);
 #endif
    ENABLE_INTERRUPTS();
-
 }
 
 void openserial_startOutput() {
@@ -332,7 +329,6 @@ void openserial_startOutput() {
          ENABLE_INTERRUPTS();
    }
    
-
    // flush buffer
    uart_clearTxInterrupts();
    uart_clearRxInterrupts();          // clear possible pending interrupts
@@ -353,16 +349,12 @@ void openserial_startOutput() {
       openserial_stop();
    }
    ENABLE_INTERRUPTS();
-
 }
 
 void openserial_stop() {
-
-
    uint8_t inputBufFill;
    uint8_t cmdByte;
    bool busyReceiving;
-
    INTERRUPT_DECLARATION();
    
    DISABLE_INTERRUPTS();
@@ -372,8 +364,7 @@ void openserial_stop() {
    
    // disable USCI_A1 TX & RX interrupt
    uart_disableInterrupts();
-
-
+   
    DISABLE_INTERRUPTS();
    openserial_vars.mode=MODE_OFF;
    ENABLE_INTERRUPTS();
@@ -428,7 +419,6 @@ void openserial_stop() {
    openserial_vars.inputBufFill  = 0;
    openserial_vars.busyReceiving = FALSE;
    ENABLE_INTERRUPTS();
-
 }
 
 /**

@@ -129,29 +129,29 @@ END_PACK
 
 //=========================== prototypes ======================================
 
-port_INLINE void             processIE_prependMLMEIE(
+void             processIE_prependMLMEIE(
    OpenQueueEntry_t*    pkt,
    uint8_t              len
 );
 
 //===== prepend IEs
 
-port_INLINE uint8_t          processIE_prependSyncIE(
+uint8_t          processIE_prependSyncIE(
    OpenQueueEntry_t*    pkt
 );
-port_INLINE uint8_t          processIE_prependSlotframeLinkIE(
+uint8_t          processIE_prependSlotframeLinkIE(
    OpenQueueEntry_t*    pkt
 );
-port_INLINE uint8_t          processIE_prependOpcodeIE(
+uint8_t          processIE_prependOpcodeIE(
    OpenQueueEntry_t*    pkt,
    uint8_t              uResCommandID
 );
-port_INLINE uint8_t          processIE_prependBandwidthIE(
+uint8_t          processIE_prependBandwidthIE(
    OpenQueueEntry_t*    pkt,
    uint8_t              numOfLinks, 
    uint8_t              slotframeID
 );
-port_INLINE uint8_t          processIE_prependSheduleIE(
+uint8_t          processIE_prependSheduleIE(
    OpenQueueEntry_t*    pkt,
    uint8_t              type,
    uint8_t              frameID,
@@ -161,21 +161,21 @@ port_INLINE uint8_t          processIE_prependSheduleIE(
 
 //===== retrieve IEs
 
-port_INLINE void             processIE_retrieveSlotframeLinkIE(
+void             processIE_retrieveSlotframeLinkIE(
    OpenQueueEntry_t*    pkt,
    uint8_t * ptr
 ); 
-port_INLINE void             processIE_retrieveOpcodeIE(
+void             processIE_retrieveOpcodeIE(
    OpenQueueEntry_t*    pkt,
    uint8_t*             ptr,
    opcode_IE_ht*        opcodeIE
 ); 
-port_INLINE void             processIE_retrieveBandwidthIE(
+void             processIE_retrieveBandwidthIE(
    OpenQueueEntry_t*    pkt,
    uint8_t *            ptr,
    bandwidth_IE_ht*     bandwidthIE
 ); 
-port_INLINE void             processIE_retrieveSheduleIE(
+void             processIE_retrieveSheduleIE(
    OpenQueueEntry_t*    pkt,
    uint8_t *            ptr,
    schedule_IE_ht*      schedule_ie

@@ -93,7 +93,7 @@ void button_init(){
 void GPIO_C_Isr_Handler(){
 
 	GPIOPinIntClear(GPIO_C_BASE, BSP_USER_BUTTON);
-	leds_debug_toggle();//toggle led.
+	//leds_debug_toggle();//toggle led.
 }
 
 /**
