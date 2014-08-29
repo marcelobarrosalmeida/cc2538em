@@ -126,8 +126,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/rinfo}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/rleds}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/rreg}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/rrt}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/osens}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/rrt}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/rwellknown}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/tcpecho}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/firmware/openos/openwsn/07-App/tcpprint}&quot;"/>
