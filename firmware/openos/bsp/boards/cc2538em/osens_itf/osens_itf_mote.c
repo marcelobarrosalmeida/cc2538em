@@ -777,6 +777,9 @@ uint8_t osens_set_pvalue(uint8_t index, osens_point_t *point)
 			sensor_points.points[index].value.value = point->value;
 			schedule.write.prod = pn;
 
+			// run the mote state machine
+			scheduler_push_task((task_cbt) osens_mote_sm, TASKPRIO_OSENS_MAIN);
+
 			return 1;
 		}
 		else
